@@ -15,7 +15,6 @@ public:
     Shader(const char* shaderCode, GLenum type);
     ~Shader();
 
-
     void attachShader(GLuint programID) const; // wrapper
 
     GLenum getType() const; // getter def., len typ, nie ID

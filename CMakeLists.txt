@@ -115,9 +115,8 @@ set(SOURCES
         src/ICameraObserver.h
         src/Camera.cpp
         src/Camera.h
-        src/models/planeVertices.h
+        src/models/plane.h
         src/models/lamp.h
-        src/models/bench.cpp
         src/models/bench.h
 )
 

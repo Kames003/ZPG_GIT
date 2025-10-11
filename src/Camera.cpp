@@ -31,7 +31,7 @@ void Camera::notify()
 {
     // Aktualizuj view matrix
     viewMatrix = glm::lookAt(position, position + front, up);
-    
+
     // Notifikuj všetkých observerov
     for (ICameraObserver* observer : observers)
     {
@@ -41,25 +41,35 @@ void Camera::notify()
 
 void Camera::moveForward(float deltaTime)
 {
-    position += front * movementSpeed * deltaTime;
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    position += forward * movementSpeed * deltaTime;
+    position.y = 0.3f;  // VAŠA VÝŠKA
     notify();
 }
 
 void Camera::moveBackward(float deltaTime)
 {
-    position -= front * movementSpeed * deltaTime;
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    position -= forward * movementSpeed * deltaTime;
+    position.y = 0.3f;  // VAŠA VÝŠKA
     notify();
 }
 
 void Camera::moveLeft(float deltaTime)
 {
-    position -= right * movementSpeed * deltaTime;
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
+    position -= rightVec * movementSpeed * deltaTime;
+    position.y = 0.3f;  // VAŠA VÝŠKA
     notify();
 }
 
 void Camera::moveRight(float deltaTime)
 {
-    position += right * movementSpeed * deltaTime;
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
+    position += rightVec * movementSpeed * deltaTime;
+    position.y = 0.3f;  // VAŠA VÝŠKA
     notify();
 }
 
@@ -67,10 +77,10 @@ void Camera::processMouseMovement(float xOffset, float yOffset, bool constrainPi
 {
     xOffset *= mouseSensitivity;
     yOffset *= mouseSensitivity;
-    
+
     yaw += xOffset;
     pitch += yOffset;
-    
+
     // Obmedzenie pitch (zabránime preklopeniu kamery)
     if (constrainPitch)
     {
@@ -79,7 +89,7 @@ void Camera::processMouseMovement(float xOffset, float yOffset, bool constrainPi
         if (pitch < -89.0f)
             pitch = -89.0f;
     }
-    
+
     updateCameraVectors();
     notify();
 }
@@ -92,7 +102,7 @@ void Camera::updateCameraVectors()
     newFront.y = sin(glm::radians(pitch));
     newFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(newFront);
-    
+
     // Prepočítaj right a up vektory
     right = glm::normalize(glm::cross(front, worldUp));
     up = glm::normalize(glm::cross(right, front));

@@ -39,6 +39,8 @@
 #include "tree.h"
 #include "bushes.h"
 #include "gift.h"
+#include "plain.h"
+#include "bench.h"
 
 Application::Application()
     : clickX(0), clickY(0), rotationAngle(0.0f),
@@ -46,7 +48,7 @@ Application::Application()
       deltaTime(0.0), lastFrame(0.0)
 {
     sceneManager = new SceneManager();
-    camera = new Camera(glm::vec3(0.0f, 1.7f, 5.0f));
+    camera = new Camera(glm::vec3(0.0f, 0.3f, 2.0f));  // Y=1.0f = výška "očí" nad zemou
 
     // Statická view matrix pre scény 1-6 (2D pohľad)
     staticViewMatrix = glm::lookAt(
@@ -136,6 +138,59 @@ void Application::createShaders()
         "     fragColor = vec4(0.0, 1.0, 0.0, 1.0);"
         "}";
 
+// Vertex shader (rovnaký pre všetky)
+    const char* forestVertexShader =
+    "#version 330\n"
+    "layout(location=0) in vec3 vp;"
+    "layout(location=1) in vec3 vn;"
+    "uniform mat4 modelMatrix;"
+    "uniform mat4 viewMatrix;"
+    "uniform mat4 projectionMatrix;"
+    "void main() {"
+    "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vp, 1.0);"
+    "}";
+
+// Fragment shader pre STROMY (tmavo hnedá)
+    const char* treeFragmentShader =
+     "#version 330\n"
+     "out vec4 fragColor;"
+     "void main() {"
+     "    fragColor = vec4(0.11, 0.38, 0.0, 1.0);"  // Tmavo silno zelená (28, 98, 0)
+     "}";
+
+
+
+// Fragment shader pre KRÍKY (svetlo zelená)
+    const char* bushFragmentShader =
+        "#version 330\n"
+        "out vec4 fragColor;"
+        "void main() {"
+        "    fragColor = vec4(0.2, 0.8, 0.2, 1.0);"  // Svetlo zelená
+        "}";
+
+// Fragment shader pre ZEM (stredne zelená)
+    const char* groundFragmentShader =
+        "#version 330\n"
+        "out vec4 fragColor;"
+        "void main() {"
+        "    fragColor = vec4(0.3, 0.6, 0.3, 1.0);"  // Zelená tráva
+        "}";
+
+    const char* pathFragmentShader =
+    "#version 330\n"
+    "out vec4 fragColor;"
+    "void main() {"
+    "    fragColor = vec4(0.87, 0.72, 0.53, 1.0);"  // Piesková farba
+    "}";
+
+    const char* benchFragmentShader =
+    "#version 330\n"
+    "out vec4 fragColor;"
+    "void main() {"
+    "    fragColor = vec4(0.5, 0.3, 0.1, 1.0);"  // Hnedá farba
+    "}";
+
+
     vertexShader = new Shader(vertexShaderCode, GL_VERTEX_SHADER);
     fragmentShader1 = new Shader(fragmentShader1Code, GL_FRAGMENT_SHADER);
     fragmentShader2 = new Shader(fragmentShader2Code, GL_FRAGMENT_SHADER);
@@ -163,8 +218,59 @@ void Application::createShaders()
     shaderProgram2->use();
     shaderProgram2->setUniform("viewMatrix", staticViewMatrix);
 
+    // Vytvorenie shaderov pre les
+    Shader* forestVertex = new Shader(forestVertexShader, GL_VERTEX_SHADER);
+    Shader* treeFragment = new Shader(treeFragmentShader, GL_FRAGMENT_SHADER);
+    Shader* bushFragment = new Shader(bushFragmentShader, GL_FRAGMENT_SHADER);
+    Shader* groundFragment = new Shader(groundFragmentShader, GL_FRAGMENT_SHADER);
+
+    // Shader programy pre les
+    std::vector<Shader*> treeShaders = {forestVertex, treeFragment};
+    shaderProgramTree = new ShaderProgram(treeShaders);
+
+    std::vector<Shader*> bushShaders = {forestVertex, bushFragment};
+    shaderProgramBush = new ShaderProgram(bushShaders);
+
+    std::vector<Shader*> groundShaders = {forestVertex, groundFragment};
+    shaderProgramGround = new ShaderProgram(groundShaders);
+
+    // TERAZ môžeme vytvoriť path shader (používa forestVertex)
+    Shader* pathFragment = new Shader(pathFragmentShader, GL_FRAGMENT_SHADER);
+    std::vector<Shader*> pathShaders = {forestVertex, pathFragment};
+    shaderProgramPath = new ShaderProgram(pathShaders);
+
+
+    Shader* benchFragment = new Shader(benchFragmentShader, GL_FRAGMENT_SHADER);
+    std::vector<Shader*> benchShaders = {forestVertex, benchFragment};
+    shaderProgramBench = new ShaderProgram(benchShaders);
+
+    camera->attach(shaderProgramPath);
+    shaderProgramPath->use();
+    shaderProgramPath->setUniform("projectionMatrix", projection);
+
+    // Registrácia kamery pre lesné shadery
+    camera->attach(shaderProgramTree);
+    camera->attach(shaderProgramBush);
+    camera->attach(shaderProgramGround);
+    camera->attach(shaderProgramBench);
+
+    // Projection matrix pre lesné shadery
+    shaderProgramTree->use();
+    shaderProgramTree->setUniform("projectionMatrix", projection);
+
+    shaderProgramBush->use();
+    shaderProgramBush->setUniform("projectionMatrix", projection);
+
+    shaderProgramGround->use();
+    shaderProgramGround->setUniform("projectionMatrix", projection);
+
+
     printf("Shaders created successfully!\n");
     printf("Observer pattern: ShaderProgram registered to Camera\n");
+
+    // Vložiť sem
+    shaderProgramBench->use(); // <--- TENTO RIADOK CHÝBAL!
+    shaderProgramBench->setUniform("projectionMatrix", projection); // <--- TENTO RIADOK CHÝBAL!
 }
 
 void Application::createModels()
@@ -186,6 +292,8 @@ void Application::createModels()
         -0.3f,  0.3f, 0.0f,  0.0f, 0.0f, 1.0f
     };
 
+
+    modelBench = new Model(benchVertices, 108);
     model1 = new Model(triangleVertices, 3);
     model2 = new Model(squareVertices, 6);
     model3 = new Model((float*)sphere, 2880);
@@ -194,6 +302,7 @@ void Application::createModels()
     modelTree = new Model((float*)tree, 92814);
     modelBushes = new Model((float*)bushes, 8730);
     modelGift = new Model((float*)gift, 66624);
+    modelPlain = new Model((float*)plain, 6);  // Podlaha
 
     printf("Models created successfully!\n");
 }
@@ -387,38 +496,97 @@ void Application::createScenes()
 
     sceneManager->addScene(scene6);
 
-    // SCENE 7: Procedurálne generovaný les (50-80 stromov a kríkov)
-    Scene* forestScene = new Scene();
+Scene* forestScene = new Scene();
 
-    srand(time(0));
+printf("\n=== Creating Forest Scene 7 ===\n");
 
-    int treeCount = 50 + rand() % 31;  // 50-80 stromov
 
-    printf("Generating forest scene 7 with %d trees...\n", treeCount);
+    // 4. CESTA (piesková - úzky plain cez les)
+    Composite* pathTransform = new Composite();
+    pathTransform->addTransformation(new Translate(0.0f, 0.01f, 0.0f));  // Mierne nad zemou
+    pathTransform->addTransformation(new Scale(2.0f, 1.0f, 20.0f));  // Úzka dlhá cesta
+    forestScene->addObject(new DrawableObject(modelPlain, pathTransform, shaderProgramPath));
 
-    for (int i = 0; i < treeCount; i++)
+    // Lavička 1
+    Composite* bench1 = new Composite();
+    bench1->addTransformation(new Translate(-1.5f, 0.0f, -5.0f));
+    bench1->addTransformation(new Scale(0.8f, 0.8f, 0.8f));
+    bench1->addTransformation(new Rotate(90.0f, 0.0f, 1.0f, 0.0f));
+    forestScene->addObject(new DrawableObject(modelBench, bench1, shaderProgramBench));
+
+    // Lavička 2
+    Composite* bench2 = new Composite();
+    bench2->addTransformation(new Translate(1.5f, 0.0f, 0.0f));
+    bench2->addTransformation(new Scale(0.8f, 0.8f, 0.8f));
+    bench2->addTransformation(new Rotate(90.0f, 0.0f, 1.0f, 0.0f));
+    forestScene->addObject(new DrawableObject(modelBench, bench2, shaderProgramBench));
+
+    // Lavička 3
+    Composite* bench3 = new Composite();
+    bench3->addTransformation(new Translate(-1.5f, 0.0f, 5.0f));
+    bench3->addTransformation(new Scale(0.8f, 0.8f, 0.8f));
+    bench3->addTransformation(new Rotate(90.0f, 0.0f, 1.0f, 0.0f));
+    forestScene->addObject(new DrawableObject(modelBench, bench3, shaderProgramBench));
+
+    printf("Path and benches created\n");
+
+
+// 1. PODLAHA (veľká zelená rovina)
+Composite* groundTransform = new Composite();
+groundTransform->addTransformation(new Translate(0.0f, 0.0f, 0.0f));
+groundTransform->addTransformation(new Scale(20.0f, 1.0f, 20.0f));
+forestScene->addObject(new DrawableObject(modelPlain, groundTransform, shaderProgramGround));
+printf("Ground plane created (20x20)\n");
+
+// 2. STROMY - pravidelná mriežka 8x8 = 64 stromov
+int treeCount = 0;
+float gridSpacing = 2.5f;
+int gridSize = 8;
+
+for (int row = 0; row < gridSize; row++)
+{
+    for (int col = 0; col < gridSize; col++)
     {
-        // Náhodná pozícia v rozsahu -10 až 10 (x a z)
-        float x = -10.0f + static_cast<float>(rand()) / RAND_MAX * 20.0f;
-        float z = -10.0f + static_cast<float>(rand()) / RAND_MAX * 20.0f;
+        float x = -9.0f + col * gridSpacing;
+        float z = -9.0f + row * gridSpacing;
 
-        // Náhodná škála 0.02 - 0.05
-        float scale = 0.02f + static_cast<float>(rand()) / RAND_MAX * 0.03f;
-
-        // Strom (červený kmeň)
+        // Strom (hnedý kmeň)
         Composite* treeTransform = new Composite();
-        treeTransform->addTransformation(new Translate(x, 0.0f, z));
-        treeTransform->addTransformation(new Scale(scale, scale, scale));
-        forestScene->addObject(new DrawableObject(modelTree, treeTransform, shaderProgram1));
-
-        // Lístie/bush (zelený) - trochu nad zemou
-        Composite* bushTransform = new Composite();
-        bushTransform->addTransformation(new Translate(x, 0.3f, z));
-        bushTransform->addTransformation(new Scale(scale * 2.0f, scale * 2.0f, scale * 2.0f));
-        forestScene->addObject(new DrawableObject(modelBushes, bushTransform, shaderProgram2));
+        treeTransform->addTransformation(new Translate(x, 0.0, z));
+        treeTransform->addTransformation(new Scale(0.3f, 0.3f, 0.3f));
+        forestScene->addObject(new DrawableObject(modelTree, treeTransform, shaderProgramTree));
+        treeCount++;
     }
+}
+printf("Trees created: %d (in 8x8 grid)\n", treeCount);
 
-    sceneManager->addScene(forestScene);
+// 3. KRÍKY - presne 50 kríkov v mriežke 10x5
+int bushCount = 0;
+float bushSpacingX = 2.0f;
+float bushSpacingZ = 4.0f;
+int bushRows = 5;
+int bushCols = 10;
+
+for (int row = 0; row < bushRows; row++)
+{
+    for (int col = 0; col < bushCols; col++)
+    {
+        float x = -9.0f + col * bushSpacingX;
+        float z = -8.0f + row * bushSpacingZ;
+
+        // Krík (zelený)
+        Composite* bushTransform = new Composite();
+        bushTransform->addTransformation(new Translate(x, -0.001f, z));
+        bushTransform->addTransformation(new Scale(0.5f, 0.5f, 0.5f));
+        forestScene->addObject(new DrawableObject(modelBushes, bushTransform, shaderProgramBush));
+        bushCount++;
+    }
+}
+printf("Bushes created: %d (in 10x5 grid)\n", bushCount);
+
+sceneManager->addScene(forestScene);
+printf("=== Forest Scene 7 Complete ===\n");
+printf("Total objects: %d (1 ground + %d trees + %d bushes)\n\n", 1 + treeCount + bushCount, treeCount, bushCount);
 
     printf("Scenes created successfully!\n");
     printf("Scene 1: Red triangle\n");
@@ -526,6 +694,12 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
                 shaderProgram1->setUniform("viewMatrix", camera->getViewMatrix());
                 shaderProgram2->use();
                 shaderProgram2->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramTree->use();
+                shaderProgramTree->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramBush->use();
+                shaderProgramBush->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramGround->use();
+                shaderProgramGround->setUniform("viewMatrix", camera->getViewMatrix());
             }
             else  // Prepnutie NA scény 1-6
             {
@@ -546,6 +720,12 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
                 shaderProgram1->setUniform("viewMatrix", camera->getViewMatrix());
                 shaderProgram2->use();
                 shaderProgram2->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramTree->use();
+                shaderProgramTree->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramBush->use();
+                shaderProgramBush->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramGround->use();
+                shaderProgramGround->setUniform("viewMatrix", camera->getViewMatrix());
             }
             else
             {
@@ -564,6 +744,12 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
                 shaderProgram1->setUniform("viewMatrix", camera->getViewMatrix());
                 shaderProgram2->use();
                 shaderProgram2->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramTree->use();
+                shaderProgramTree->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramBush->use();
+                shaderProgramBush->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramGround->use();
+                shaderProgramGround->setUniform("viewMatrix", camera->getViewMatrix());
             }
             else
             {

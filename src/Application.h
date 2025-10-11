@@ -34,6 +34,12 @@ private:
     // shader programs
     ShaderProgram* shaderProgram1;
     ShaderProgram* shaderProgram2;
+    ShaderProgram* shaderProgramTree;
+    ShaderProgram* shaderProgramBush;
+    ShaderProgram* shaderProgramGround;
+    ShaderProgram* shaderProgramPath;
+    ShaderProgram* shaderProgramBench;
+
 
     // models
     Model* model1;
@@ -44,9 +50,10 @@ private:
     Model* modelTree;
     Model* modelBushes;
     Model* modelGift;
-    Model* modelPlane;
+    Model* modelPlain;
     Model* modelLamp;
     Model* modelBench;
+
 
     // Pre kameru a myš
     bool firstMouse;
