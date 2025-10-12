@@ -27,7 +27,7 @@ public:
     void setUniform(const char* name, const glm::vec3& value);
     void setUniform(const char* name, const glm::mat4& value);
 
-    // NOVÉ! Observer pattern - implementácia update metódy
+    // Observer pattern
     void update(Camera* camera) override;
 };
 

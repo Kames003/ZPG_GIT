@@ -40,13 +40,10 @@ ShaderProgram::~ShaderProgram()
     }
 }
 
-
 void ShaderProgram::use()
 {
     glUseProgram(programID);
 }
-
-
 
 void ShaderProgram::setUniform(const char* name, int value)
 {
@@ -72,10 +69,9 @@ void ShaderProgram::setUniform(const char* name, const glm::mat4& value)
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-// Observer pattern - implementácia update metódy
+// call z observera si vytiahne sám
 void ShaderProgram::update(Camera* camera)
 {
-    // Automaticky aktualizuj view matrix, keď sa kamera zmení
     use();
     setUniform("viewMatrix", camera->getViewMatrix());
 }

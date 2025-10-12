@@ -29,13 +29,13 @@ void Camera::detach(ICameraObserver* observer)
 
 void Camera::notify()
 {
-    // Aktualizuj view matrix
+    // kamera sa pohla, potrbuješ novu view matrix ktorá reprezentuje poziciu / rotaciu kamery
     viewMatrix = glm::lookAt(position, position + front, up);
 
     // Notifikuj všetkých observerov
     for (ICameraObserver* observer : observers)
-    {
-        observer->update(this);
+    {                                   // pouzivame pull pattern
+        observer->update(this); // hej niečo sa zmenilo posielam celý pristup ku mne -- pointer
     }
 }
 

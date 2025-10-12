@@ -12,7 +12,7 @@ public:
     virtual ~ICameraObserver() = default;
     
     // Metóda volaná, keď sa kamera zmení
-    virtual void update(Camera* camera) = 0;
+    virtual void update( Camera* camera) = 0;
 };
 
 #endif
