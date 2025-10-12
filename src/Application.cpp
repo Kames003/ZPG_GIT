@@ -248,7 +248,7 @@ void Application::createShaders()
     shaderProgramPath->use();
     shaderProgramPath->setUniform("projectionMatrix", projection);
 
-    // Registrácia kamery pre lesné shadery
+    // registrácia observerov
     camera->attach(shaderProgramTree);
     camera->attach(shaderProgramBush);
     camera->attach(shaderProgramGround);
@@ -686,7 +686,6 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
             int sceneIndex = key - GLFW_KEY_1;  // 0-6
             sceneManager->switchToScene(sceneIndex);
 
-            // ========== SUPER JEDNODUCHÁ LOGIKA ==========
             if (sceneIndex == 6)  // Prepnutie NA scénu 7
             {
                 firstMouse = true;
@@ -700,6 +699,10 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
                 shaderProgramBush->setUniform("viewMatrix", camera->getViewMatrix());
                 shaderProgramGround->use();
                 shaderProgramGround->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramPath->use();
+                shaderProgramPath->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramBench->use();
+                shaderProgramBench->setUniform("viewMatrix", camera->getViewMatrix());
             }
             else  // Prepnutie NA scény 1-6
             {
@@ -726,6 +729,10 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
                 shaderProgramBush->setUniform("viewMatrix", camera->getViewMatrix());
                 shaderProgramGround->use();
                 shaderProgramGround->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramPath->use();
+                shaderProgramPath->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramBench->use();
+                shaderProgramBench->setUniform("viewMatrix", camera->getViewMatrix());
             }
             else
             {
@@ -750,6 +757,10 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
                 shaderProgramBush->setUniform("viewMatrix", camera->getViewMatrix());
                 shaderProgramGround->use();
                 shaderProgramGround->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramPath->use();
+                shaderProgramPath->setUniform("viewMatrix", camera->getViewMatrix());
+                shaderProgramBench->use();
+                shaderProgramBench->setUniform("viewMatrix", camera->getViewMatrix());
             }
             else
             {

@@ -5,12 +5,12 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <vector>
-#include "ICameraObserver.h"  // NOVÉ!
+#include "ICameraObserver.h"
 
 class Shader;
 class Camera;  // Forward declaration
 
-class ShaderProgram : public ICameraObserver  // NOVÉ! Dedí z ICameraObserver
+class ShaderProgram : public ICameraObserver
 {
 private:
     GLuint programID;
@@ -21,7 +21,7 @@ public:
 
     void use();
 
-    // Preťažené metódy pre posielanie uniformných premenných
+    // Valid C++ preťaženie metódy pre posielanie uniformných premenných
     void setUniform(const char* name, int value);
     void setUniform(const char* name, float value);
     void setUniform(const char* name, const glm::vec3& value);

@@ -29,13 +29,13 @@ void Camera::detach(ICameraObserver* observer)
 
 void Camera::notify()
 {
-    // kamera sa pohla, potrbuješ novu view matrix ktorá reprezentuje poziciu / rotaciu kamery
+    // 1. PREPOČÍTAJ view matrix (kamera sa pohla/otočila)
     viewMatrix = glm::lookAt(position, position + front, up);
 
-    // Notifikuj všetkých observerov
+    // pre kazdy ShaderProgram zavolaj jeho metodu update
     for (ICameraObserver* observer : observers)
     {                                   // pouzivame pull pattern
-        observer->update(this); // hej niečo sa zmenilo posielam celý pristup ku mne -- pointer
+        observer->update(this); // Tu máš kameru, vytiahni si z nej čo potrebuješ
     }
 }
 
@@ -43,7 +43,7 @@ void Camera::moveForward(float deltaTime)
 {
     glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
     position += forward * movementSpeed * deltaTime;
-    position.y = 0.3f;  // VAŠA VÝŠKA
+    position.y = 0.3f;  // Výška oči
     notify();
 }
 
@@ -51,7 +51,7 @@ void Camera::moveBackward(float deltaTime)
 {
     glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
     position -= forward * movementSpeed * deltaTime;
-    position.y = 0.3f;  // VAŠA VÝŠKA
+    position.y = 0.3f;
     notify();
 }
 
@@ -60,7 +60,7 @@ void Camera::moveLeft(float deltaTime)
     glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
     glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
     position -= rightVec * movementSpeed * deltaTime;
-    position.y = 0.3f;  // VAŠA VÝŠKA
+    position.y = 0.3f;
     notify();
 }
 
@@ -69,7 +69,7 @@ void Camera::moveRight(float deltaTime)
     glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
     glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
     position += rightVec * movementSpeed * deltaTime;
-    position.y = 0.3f;  // VAŠA VÝŠKA
+    position.y = 0.3f;
     notify();
 }
 

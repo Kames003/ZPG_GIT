@@ -70,8 +70,9 @@ void ShaderProgram::setUniform(const char* name, const glm::mat4& value)
 }
 
 // call z observera si vytiahne sám
-void ShaderProgram::update(Camera* camera)
+void ShaderProgram::update(Camera* camera) // dostal si ukazovatel na kameru
 {
     use();
-    setUniform("viewMatrix", camera->getViewMatrix());
+    setUniform("viewMatrix", camera->getViewMatrix());     // Vytiahni si view matrix Z KAMERY (ktorú si dostal ako parameter)
+    // potom pošli do gpu
 }
