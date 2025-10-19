@@ -10,7 +10,7 @@ uniform vec3 objectColor;
 
 void main(void)
 {
-    // AMBIENT
+    // AMBIENT (jedná sa o základné svetlo)
     vec3 ambient = 0.3 * objectColor;
 
     // DIFFUSE (Lambert)
@@ -19,7 +19,7 @@ void main(void)
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * objectColor;
 
-    // ← ATTENUATION
+    // ← ATTENUATION ( útlm sveltla na základe vzdialenosti )
     float distance = length(lightPosition - worldPosition.xyz);
     float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
 

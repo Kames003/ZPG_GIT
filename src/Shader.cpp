@@ -8,7 +8,11 @@ Shader::Shader(GLenum type, IShaderLoader* loader) // constructor obsahujúci ak
     shaderType = type;
     shaderID = glCreateShader(type); // OpenGL vygeneruje ID
 
+
+    // nevie či je to FileShaderLoader alebo InlineShaderLoader
+    // ale vie že ma funkciu loadShaderCode()
     std::string shaderCodeStr = loader->loadShaderCode();
+
     const char* shaderCode = shaderCodeStr.c_str();
 
     glShaderSource(shaderID, 1, &shaderCode, NULL);

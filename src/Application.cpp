@@ -673,14 +673,10 @@ void Application::run()
         // SCENE 2: SOLAR SYSTEM ANIMATION
         // ============================================
         if (sceneManager->getActiveSceneIndex() == 1) {
-            static float earthAngle = 0.0f;
-            static float moonAngle = 0.0f;
-
-            earthAngle += 0.5f;
-            moonAngle += 0.8f;
-
-            if (earthAngle > 360.0f) earthAngle -= 360.0f;
-            if (moonAngle > 360.0f) moonAngle -= 360.0f;
+            // ✅ Priamo z času - žiadne static premenné!
+            float currentTime = (float)glfwGetTime();
+            float earthAngle = fmod(currentTime * 30.0f, 360.0f);  // 30°/s
+            float moonAngle = fmod(currentTime * 48.0f, 360.0f);   // 48°/s
 
             Scene* solarScene = sceneManager->getActiveScene();
             if (solarScene && solarScene->getObjects().size() >= 3) {
@@ -723,8 +719,7 @@ void Application::run()
         // SCENE 4: ROTATING TRIANGLE
         // ============================================
         if (sceneManager->getActiveSceneIndex() == 3) {
-            rotationAngle += 1.0f;
-            if (rotationAngle > 360.0f) rotationAngle -= 360.0f;
+            float rotationAngle = fmod((float)glfwGetTime() * 60.0f, 360.0f);  // 60°/s
 
             Scene* scene4 = sceneManager->getActiveScene();
             if (scene4) {

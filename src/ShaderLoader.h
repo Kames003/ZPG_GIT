@@ -4,9 +4,7 @@
 
 #include <string>
 
-// ============================================
-// STRATEGY INTERFACE - definuje zmluvu
-// ============================================
+// implementácia strategy patternu
 class IShaderLoader
 {
 public:
@@ -14,9 +12,7 @@ public:
     virtual std::string loadShaderCode() = 0;
 };
 
-// ============================================
-// CONCRETE STRATEGY 1 - Inline kód
-// ============================================
+// inline kod
 class InlineShaderLoader : public IShaderLoader
 {
 private:
@@ -30,9 +26,7 @@ public:
     }
 };
 
-// ============================================
-// CONCRETE STRATEGY 2 - Súbor
-// ============================================
+// súbor
 class FileShaderLoader : public IShaderLoader
 {
 private:
