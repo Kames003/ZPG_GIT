@@ -2,9 +2,11 @@
 #ifndef ROTATE_H
 #define ROTATE_H
 
-#include "Transformation.h"
+#include "TransformComponent.h"
 
-class Rotate : public Transformation
+// predstavuje elementárnu operáciu ( leaf )
+
+class Rotate : public TransformComponent
 {
 public:
     Rotate(float angle, float x, float y, float z);

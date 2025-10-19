@@ -94,16 +94,16 @@ set(SOURCES
         src/Model.h
 
         # Transformations
-        src/Transformation.cpp
-        src/Transformation.h
+        src/TransformComponent.cpp
+        src/TransformComponent.h
         src/Translate.cpp
         src/Translate.h
         src/Rotate.cpp
         src/Rotate.h
         src/Scale.cpp
         src/Scale.h
-        src/Composite.cpp
-        src/Composite.h
+        src/TransformComposite.cpp
+        src/TransformComposite.h
 
         # Objects & Scenes
         src/DrawableObject.cpp
@@ -118,6 +118,13 @@ set(SOURCES
         src/models/plane.h
         src/models/lamp.h
         src/models/bench.h
+        src/Contoller.cpp
+        src/Contoller.h
+        src/Light.cpp
+        src/Light.h
+        src/ShaderLoader.cpp
+        src/ShaderLoader.h
+        src/models/triangle.h
 )
 
 # ========================================

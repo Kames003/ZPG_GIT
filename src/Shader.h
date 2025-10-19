@@ -4,6 +4,10 @@
 
 #include <GL/glew.h>
 
+// shader = jednotlivý shader ( vertex alebo fragment )
+
+class IShaderLoader;
+
 class Shader
 {
 private:
@@ -12,7 +16,7 @@ private:
 
 
 public:
-    Shader(const char* shaderCode, GLenum type);
+    Shader(GLenum type, IShaderLoader* loader);
     ~Shader();
 
     void attachShader(GLuint programID) const; // wrapper

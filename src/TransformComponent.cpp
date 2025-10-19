@@ -1,12 +1,12 @@
-#include "Transformation.h"
+#include "TransformComponent.h"
 
-Transformation::Transformation()
+TransformComponent::TransformComponent()
 {
     matrix = glm::mat4(1.0f);
     // konštruktor zaručí vytvorenie inštancie triedy s jednotkovou maticou
 }
 
-glm::mat4 Transformation::getMatrix()
+glm::mat4 TransformComponent::getMatrix()
 {
     return matrix;
 }

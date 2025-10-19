@@ -2,6 +2,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "Light.h"
 #include <stdio.h>
 
 ShaderProgram::ShaderProgram(const std::vector<Shader*>& shaders)
@@ -14,7 +15,7 @@ ShaderProgram::ShaderProgram(const std::vector<Shader*>& shaders)
     {
         shader->attachShader(programID);  //  Volá Shader::attachShader()
     }
-
+    // this is the teory which is behind that
     // Link
     glLinkProgram(programID);
 
@@ -70,9 +71,21 @@ void ShaderProgram::setUniform(const char* name, const glm::mat4& value)
 }
 
 // call z observera si vytiahne sám
-void ShaderProgram::update(Camera* camera) // dostal si ukazovatel na kameru
+void ShaderProgram::update(Camera* camera) // dostal si ukazovatel na kameru, observer sám si vytiahni dáta
 {
     use();
     setUniform("viewMatrix", camera->getViewMatrix());     // Vytiahni si view matrix Z KAMERY (ktorú si dostal ako parameter)
-    // potom pošli do gpu
+    setUniform("viewPosition", camera->getPosition());  // ← NOVÉ pre specular
+
+
+
+
+}
+
+void ShaderProgram::onLightUpdate(Light* light)
+{
+    use();
+    setUniform("lightPosition", light->getPosition());
+    setUniform("lightColor", light->getColor());
+    setUniform("lightIntensity", light->getIntensity());
 }

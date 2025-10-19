@@ -7,31 +7,31 @@
 #include <vector>
 #include "SceneManager.h"
 #include "Camera.h"
+#include "Contoller.h"
+#include "Light.h"
 
 using namespace std;
 
-// forward deklarácia
+class GLFWwindow;
 class Shader;
 class ShaderProgram;
 class Model;
-class Transformation;
-class DrawableObject;
-class Scene;
 
 class Application
 {
 private:
     GLFWwindow* window;
     SceneManager* sceneManager;
-    Camera* camera;
-    glm::mat4 staticViewMatrix; // statická view metrix pre scény 1-6
 
-    // shaders
+    Camera* cameraStatic;    // Scény 1-6
+    Camera* cameraDynamic;   // Scéna 7 (les)
+
+    Controller* controller;
+
+    // Shaders
     Shader* vertexShader;
     Shader* fragmentShader1;
     Shader* fragmentShader2;
-
-    // shader programs
     ShaderProgram* shaderProgram1;
     ShaderProgram* shaderProgram2;
     ShaderProgram* shaderProgramTree;
@@ -40,8 +40,18 @@ private:
     ShaderProgram* shaderProgramPath;
     ShaderProgram* shaderProgramBench;
 
+    // lightning shaders
 
-    // models
+
+    ShaderProgram* shaderProgramPhong;
+    ShaderProgram* shaderProgramLambert;
+    ShaderProgram* shaderProgramConstant;
+    ShaderProgram* shaderProgramBlinn;
+
+    Light* mainLight;
+
+
+    // Models
     Model* model1;
     Model* model2;
     Model* model3;
@@ -51,28 +61,13 @@ private:
     Model* modelBushes;
     Model* modelGift;
     Model* modelPlain;
-    Model* modelLamp;
     Model* modelBench;
 
-
-    // Pre kameru a myš
-    bool firstMouse;
-    double lastX, lastY;
-    double deltaTime;
-    double lastFrame;
-
-
-
-    // other variables
-    double clickX, clickY;
     float rotationAngle;
-
-    // NOVÉ! Pomocné metódy pre správu view matrix
-    void restoreStaticViewMatrix();    // Obnoví statickú view matrix pre scény 1-6
-
 
 public:
     Application();
+    ~Application();
 
     void initialization();
     void createShaders();
@@ -80,16 +75,9 @@ public:
     void createScenes();
     void run();
 
-    void processInput(GLFWwindow* window);
-
-    void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
-
-    void error_callback(int error, const char* description);
-    void window_focus_callback(GLFWwindow* window, int focused);
-    void window_iconify_callback(GLFWwindow* window, int iconified);
-    void window_size_callback(GLFWwindow* window, int width, int height);
-    void mouse_button_callback(GLFWwindow* window, int button, int action, int mode);
+    // ← NOVÉ: Gettery pre controller
+    Camera* getCameraStatic() { return cameraStatic; }
+    Camera* getCameraDynamic() { return cameraDynamic; }
 };
 
 #endif

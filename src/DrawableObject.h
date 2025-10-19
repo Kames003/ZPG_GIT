@@ -2,26 +2,39 @@
 #ifndef DRAWABLEOBJECT_H
 #define DRAWABLEOBJECT_H
 
+#include <glm/glm.hpp>  // ← MUSÍ BYŤ!
+
 class Model;
-class Transformation;
+class TransformComponent;
 class ShaderProgram;
 
 class DrawableObject
 {
 private:
     Model* model;
-    Transformation* transformation;
+    TransformComponent* transformation;
     ShaderProgram* shaderProgram;
 
+    // ← NOVÉ: Farba objektu
+    glm::vec3 objectColor;
+    bool hasColor;
+
 public:
-    DrawableObject(Model* m, Transformation* t, ShaderProgram* sp);
+    // Pôvodný konštruktor (bez farby)
+    DrawableObject(Model* m, TransformComponent* t, ShaderProgram* sp);
+
+    // ← NOVÝ konštruktor (s farbou)
+    DrawableObject(Model* m, TransformComponent* t, ShaderProgram* sp, glm::vec3 color);
 
     void draw();
 
-    // getters
+    // Getters
     Model* getModel();
-    Transformation* getTransformation();
+    TransformComponent* getTransformation();
     ShaderProgram* getShaderProgram();
+
+    // ← NOVÝ: Setter pre farbu
+    void setObjectColor(const glm::vec3& color);
 };
 
 #endif

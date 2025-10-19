@@ -1,98 +1,79 @@
 #include "Camera.h"
 #include <algorithm>
+#include <cstdio>
+#include <GLFW/glfw3.h>
 
-Camera::Camera(glm::vec3 pos, glm::vec3 up, float yaw, float pitch)
+Camera::Camera(glm::vec3 pos, glm::vec3 up, float yaw, float pitch, bool movable)
     : position(pos), worldUp(up), yaw(yaw), pitch(pitch),
-      movementSpeed(2.5f), mouseSensitivity(0.1f)
+      movementSpeed(2.5f), mouseSensitivity(0.1f),
+      firstMouse(true), lastX(400.0), lastY(300.0),
+      isMovable(movable)  // ← NOVÝ
 {
     front = glm::vec3(0.0f, 0.0f, -1.0f);
     updateCameraVectors();
+    updateViewMatrix();
+}
+// ================== OBSERVER PATTERN ==================
 
-    // pôvodne viewMatrix nebolo inicialitovaná takže sa properne inicializovala prvý krát len pri pohybe kamery alebo pri rotácií s myšou
-    // teda keď nebola inicializovaná obsahuje náhodné čísla
-    // všetky vrcholy sú mimo view frustum --> nič sa nevykreslí čierna scéna
-    viewMatrix = glm::lookAt(position, position + front, up);
+void Camera::attachObserver(ICameraObserver* observer)
+{
+    observerCollection.push_back(observer);
 }
 
-void Camera::attach(ICameraObserver* observer)
+void Camera::detachObserver(ICameraObserver* observer)
 {
-    observers.push_back(observer);
-}
-
-void Camera::detach(ICameraObserver* observer)
-{
-    observers.erase(
-        std::remove(observers.begin(), observers.end(), observer),
-        observers.end()
+    observerCollection.erase(
+        std::remove(observerCollection.begin(), observerCollection.end(), observer),
+        observerCollection.end()
     );
 }
 
-void Camera::notify()
+void Camera::notifyObservers()
 {
-    // 1. PREPOČÍTAJ view matrix (kamera sa pohla/otočila)
-    viewMatrix = glm::lookAt(position, position + front, up);
-
-    // pre kazdy ShaderProgram zavolaj jeho metodu update
-    for (ICameraObserver* observer : observers)
-    {                                   // pouzivame pull pattern
-        observer->update(this); // Tu máš kameru, vytiahni si z nej čo potrebuješ
+    // PULL pattern - observeri si sami vytiahnu view matrix cez getViewMatrix()
+    for (ICameraObserver* observer : observerCollection)
+    {
+        observer->update(this);
     }
 }
 
-void Camera::moveForward(float deltaTime)
-{
-    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-    position += forward * movementSpeed * deltaTime;
-    position.y = 0.3f;  // Výška oči
-    notify();
-}
+// ================== INPUT PROCESSING ==================
 
-void Camera::moveBackward(float deltaTime)
+void Camera::processMouseInput(double xpos, double ypos)
 {
-    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-    position -= forward * movementSpeed * deltaTime;
-    position.y = 0.3f;
-    notify();
-}
+    if (!isMovable) return;  // ← Statická kamera - bez otáčania
 
-void Camera::moveLeft(float deltaTime)
-{
-    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-    glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
-    position -= rightVec * movementSpeed * deltaTime;
-    position.y = 0.3f;
-    notify();
-}
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+        return;
+    }
 
-void Camera::moveRight(float deltaTime)
-{
-    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-    glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
-    position += rightVec * movementSpeed * deltaTime;
-    position.y = 0.3f;
-    notify();
-}
+    double xOffset = xpos - lastX;
+    double yOffset = lastY - ypos;
 
-void Camera::processMouseMovement(float xOffset, float yOffset, bool constrainPitch)
-{
+    lastX = xpos;
+    lastY = ypos;
+
     xOffset *= mouseSensitivity;
     yOffset *= mouseSensitivity;
 
     yaw += xOffset;
     pitch += yOffset;
 
-    // Obmedzenie pitch (zabránime preklopeniu kamery)
-    if (constrainPitch)
-    {
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-    }
+    if (pitch > 89.0f) pitch = 89.0f;
+    if (pitch < -89.0f) pitch = -89.0f;
 
     updateCameraVectors();
-    notify();
+    updateViewMatrix();
+    notifyObservers();
 }
+
+
+
+// ================== CAMERA VECTORS UPDATE ==================
 
 void Camera::updateCameraVectors()
 {
@@ -108,17 +89,59 @@ void Camera::updateCameraVectors()
     up = glm::normalize(glm::cross(right, front));
 }
 
-glm::mat4 Camera::getViewMatrix() const
+void Camera::updateViewMatrix()
 {
-    return viewMatrix;
+    // Prepočet view matrix - interná zodpovednosť kamery
+    viewMatrix = glm::lookAt(position, position + front, up);
 }
 
-glm::vec3 Camera::getPosition() const
+void Camera::moveForward(float deltaTime)
 {
-    return position;
+    if (!isMovable) return;  // ← Statická kamera sa neposunie
+
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    position += forward * movementSpeed * deltaTime;
+    position.y = 0.3f;  // Ostáva nad zemou
+
+    updateViewMatrix();
+    notifyObservers();
 }
 
-glm::vec3 Camera::getFront() const
+void Camera::moveBackward(float deltaTime)
 {
-    return front;
+    if (!isMovable) return;
+
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    position -= forward * movementSpeed * deltaTime;
+    position.y = 0.3f;
+
+    updateViewMatrix();
+    notifyObservers();
 }
+
+void Camera::moveLeft(float deltaTime)
+{
+    if (!isMovable) return;
+
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
+    position -= rightVec * movementSpeed * deltaTime;
+    position.y = 0.3f;
+
+    updateViewMatrix();
+    notifyObservers();
+}
+
+void Camera::moveRight(float deltaTime)
+{
+    if (!isMovable) return;
+
+    glm::vec3 forward = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    glm::vec3 rightVec = glm::normalize(glm::cross(forward, worldUp));
+    position += rightVec * movementSpeed * deltaTime;
+    position.y = 0.3f;
+
+    updateViewMatrix();
+    notifyObservers();
+}
+

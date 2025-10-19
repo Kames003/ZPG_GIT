@@ -2,9 +2,12 @@
 #ifndef SCALE_H
 #define SCALE_H
 
-#include "Transformation.h"
+#include "TransformComponent.h"
 
-class Scale : public Transformation
+// predstavuje elementárnu operáciu ( leaf )
+
+
+class Scale : public TransformComponent
 {
 public:
     Scale(float x, float y, float z);

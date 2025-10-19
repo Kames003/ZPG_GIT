@@ -6,14 +6,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-class Transformation
+// abstraktná základná trieda -> z nej dedia všetky ostatné transformácie
+class TransformComponent
 {
 protected:
     glm::mat4 matrix;
 
 public:
-    Transformation();
-    virtual glm::mat4 getMatrix(); // spoločná operácia// / component + virtuálna metóda
+    TransformComponent();
+    virtual glm::mat4 getMatrix(); // spoločná operácia
 };
 
 #endif

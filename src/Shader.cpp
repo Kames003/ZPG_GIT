@@ -1,11 +1,15 @@
 #include "Shader.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "ShaderLoader.h"
 
-Shader::Shader(const char* shaderCode, GLenum type) // constructor obsahujúci aký je to shader a id skompilovaného shadera
+Shader::Shader(GLenum type, IShaderLoader* loader) // constructor obsahujúci aký je to shader a id skompilovaného shadera
 {
     shaderType = type;
     shaderID = glCreateShader(type); // OpenGL vygeneruje ID
+
+    std::string shaderCodeStr = loader->loadShaderCode();
+    const char* shaderCode = shaderCodeStr.c_str();
 
     glShaderSource(shaderID, 1, &shaderCode, NULL);
     glCompileShader(shaderID);

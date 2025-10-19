@@ -6,17 +6,23 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "ICameraObserver.h"
+#include "ILightObserver.h"
 
 class Shader;
 class Camera;  // Forward declaration
 
-class ShaderProgram : public ICameraObserver
+// čo by tu mohlo byť nakolko sa jedna o c++
+// class ShaderProgram : public ICameraObserver, public ILightObserver
+
+
+
+class ShaderProgram : public ICameraObserver, public ILightObserver
 {
 private:
     GLuint programID;
 
 public:
-    ShaderProgram(const std::vector<Shader*>& shaders);
+    ShaderProgram(const std::vector<Shader*>& shaders); // berie shaders
     ~ShaderProgram();
 
     void use();
@@ -28,7 +34,8 @@ public:
     void setUniform(const char* name, const glm::mat4& value);
 
     // Observer pattern
-    void update(Camera* camera) override;
+    void update(Camera* camera) override; // implementuje interface
+    void onLightUpdate(Light* light) override;
 };
 
 #endif
