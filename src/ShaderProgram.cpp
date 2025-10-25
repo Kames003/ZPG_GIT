@@ -70,19 +70,35 @@ void ShaderProgram::setUniform(const char* name, const glm::mat4& value)
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
+// downcast ( type identification )
+// rozhodujeme ako reagovať na zmenu
+void ShaderProgram::notify(Subject* subject) // parameter je objekt
+{
+    // je to camera
+    Camera* camera = dynamic_cast<Camera*>(subject);
+    if (camera) {
+        updateCameraUniforms(camera);
+        return;
+    }
+
+    // je to svetlo ?
+    Light* light = dynamic_cast<Light*>(subject);
+    if (light) {
+        updateLightUniforms(light);
+        return;
+    }
+}
+
 // call z observera si vytiahne sám
-void ShaderProgram::update(Camera* camera) // dostal si ukazovatel na kameru, observer sám si vytiahni dáta
+void ShaderProgram::updateCameraUniforms(Camera* camera) // dostal si ukazovatel na kameru, observer sám si vytiahni dáta
 {
     use();
     setUniform("viewMatrix", camera->getViewMatrix());     // Vytiahni si view matrix Z KAMERY (ktorú si dostal ako parameter)
     setUniform("viewPosition", camera->getPosition());  // ← NOVÉ pre specular
 
-
-
-
 }
 
-void ShaderProgram::onLightUpdate(Light* light)
+void ShaderProgram::updateLightUniforms(Light* light)
 {
     use();
     setUniform("lightPosition", light->getPosition());

@@ -46,11 +46,11 @@ void Controller::keyCallback(GLFWwindow* window, int key, int scancode, int acti
             if (sceneIndex == 6) {  // Scéna 7 = les
                 ctrl->setActiveCamera(ctrl->cameraDynamic);
                 ctrl->cameraDynamic->resetMouseState();
-                ctrl->cameraDynamic->notifyObservers();
+                ctrl->cameraDynamic->notifyAll();
                 printf(">>> Scene 7: Dynamic camera enabled <<<\n");
             } else {  // Scény 1-6
                 ctrl->setActiveCamera(ctrl->cameraStatic);
-                ctrl->cameraStatic->notifyObservers();
+                ctrl->cameraStatic->notifyAll();
                 printf(">>> Scene %d: Static camera <<<\n", sceneIndex + 1);
             }
             return;
@@ -66,10 +66,10 @@ void Controller::keyCallback(GLFWwindow* window, int key, int scancode, int acti
 
                 if (nextIndex == 6) {
                     ctrl->setActiveCamera(ctrl->cameraDynamic);
-                    ctrl->cameraDynamic->notifyObservers();  // ← PRIDAJTE
+                    ctrl->cameraDynamic->notifyAll();  // ← PRIDAJTE
                 } else {
                     ctrl->setActiveCamera(ctrl->cameraStatic);
-                    ctrl->cameraStatic->notifyObservers();  // ← PRIDAJTE
+                    ctrl->cameraStatic->notifyAll();  // ← PRIDAJTE
                 }
             }
             return;
@@ -85,10 +85,10 @@ void Controller::keyCallback(GLFWwindow* window, int key, int scancode, int acti
 
                 if (prevIndex == 6) {
                     ctrl->setActiveCamera(ctrl->cameraDynamic);
-                    ctrl->cameraDynamic->notifyObservers();  // ← PRIDAJTE
+                    ctrl->cameraDynamic->notifyAll();  // ← PRIDAJTE
                 } else {
                     ctrl->setActiveCamera(ctrl->cameraStatic);
-                    ctrl->cameraStatic->notifyObservers();  // ← PRIDAJTE
+                    ctrl->cameraStatic->notifyAll();  // ← PRIDAJTE
                 }
             }
             return;

@@ -112,7 +112,6 @@ set(SOURCES
         src/Scene.h
         src/SceneManager.cpp
         src/SceneManager.h
-        src/ICameraObserver.h
         src/Camera.cpp
         src/Camera.h
         src/models/plane.h
@@ -125,6 +124,8 @@ set(SOURCES
         src/ShaderLoader.cpp
         src/ShaderLoader.h
         src/models/triangle.h
+        src/Subject.h
+        src/Subject.cpp
 )
 
 # ========================================

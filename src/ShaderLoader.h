@@ -4,6 +4,7 @@
 
 #include <string>
 
+// strategy pattern prosto a len volame načitaj a on nemusí vedieť ako
 // implementácia strategy patternu
 class IShaderLoader
 {

@@ -154,8 +154,8 @@ void Application::createShaders()
     shaderProgram2 = new ShaderProgram(shaders2);
 
     // Pripoj statickú kameru
-    cameraStatic->attachObserver(shaderProgram1);
-    cameraStatic->attachObserver(shaderProgram2);
+    cameraStatic->attach(shaderProgram1);
+    cameraStatic->attach(shaderProgram2);
 
     // Projection matrix - DYNAMICKÝ ASPECT RATIO
     int width, height;
@@ -170,7 +170,7 @@ void Application::createShaders()
     shaderProgram2->use();
     shaderProgram2->setUniform("projectionMatrix", projection);
 
-    cameraStatic->notifyObservers();
+    cameraStatic->notifyAll();
 
     printf("✓ Static camera shaders created from files\n");
 
@@ -214,11 +214,11 @@ void Application::createShaders()
     shaderProgramBench = new ShaderProgram(benchShaders);
 
     // Pripoj dynamickú kameru
-    cameraDynamic->attachObserver(shaderProgramTree);
-    cameraDynamic->attachObserver(shaderProgramBush);
-    cameraDynamic->attachObserver(shaderProgramGround);
-    cameraDynamic->attachObserver(shaderProgramPath);
-    cameraDynamic->attachObserver(shaderProgramBench);
+    cameraDynamic->attach(shaderProgramTree);
+    cameraDynamic->attach(shaderProgramBush);
+    cameraDynamic->attach(shaderProgramGround);
+    cameraDynamic->attach(shaderProgramPath);
+    cameraDynamic->attach(shaderProgramBench);
 
     // Projection matrix pre lesné shadery
     shaderProgramTree->use();
@@ -236,7 +236,7 @@ void Application::createShaders()
     shaderProgramBench->use();
     shaderProgramBench->setUniform("projectionMatrix", projection);
 
-    cameraDynamic->notifyObservers();
+    cameraDynamic->notifyAll();
 
     printf("✓ Dynamic camera shaders created from files\n");
 
@@ -292,20 +292,20 @@ void Application::createShaders()
            mainLight->getPosition().z);
 
     // Pripoj light observers
-    mainLight->attachObserver(shaderProgramPhong);
-    mainLight->attachObserver(shaderProgramLambert);
-    mainLight->attachObserver(shaderProgramBlinn);
+    mainLight->attach(shaderProgramPhong);
+    mainLight->attach(shaderProgramLambert);
+    mainLight->attach(shaderProgramBlinn);
 
     // Pripoj kamery k lighting shaderom
-    cameraStatic->attachObserver(shaderProgramPhong);
-    cameraStatic->attachObserver(shaderProgramLambert);
-    cameraStatic->attachObserver(shaderProgramConstant);
-    cameraStatic->attachObserver(shaderProgramBlinn);
+    cameraStatic->attach(shaderProgramPhong);
+    cameraStatic->attach(shaderProgramLambert);
+    cameraStatic->attach(shaderProgramConstant);
+    cameraStatic->attach(shaderProgramBlinn);
 
-    cameraDynamic->attachObserver(shaderProgramPhong);
-    cameraDynamic->attachObserver(shaderProgramLambert);
-    cameraDynamic->attachObserver(shaderProgramConstant);
-    cameraDynamic->attachObserver(shaderProgramBlinn);
+    cameraDynamic->attach(shaderProgramPhong);
+    cameraDynamic->attach(shaderProgramLambert);
+    cameraDynamic->attach(shaderProgramConstant);
+    cameraDynamic->attach(shaderProgramBlinn);
 
     // Projection matrix pre lighting shadery
     shaderProgramPhong->use();
@@ -322,10 +322,10 @@ void Application::createShaders()
 
     // KRITICKÉ: Najprv notifikuj svetlo, potom kameru!
     printf("\n--- Sending initial notifications ---\n");
-    mainLight->notifyObservers();
+    mainLight->notifyAll();
     printf("✓ Light notifications sent\n");
 
-    cameraStatic->notifyObservers();
+    cameraStatic->notifyAll();
     printf("✓ Camera notifications sent\n");
 
     printf("\n✓ Lighting shaders created: Phong, Lambert, Constant, Blinn\n");

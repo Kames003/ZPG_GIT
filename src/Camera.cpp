@@ -13,31 +13,7 @@ Camera::Camera(glm::vec3 pos, glm::vec3 up, float yaw, float pitch, bool movable
     updateCameraVectors();
     updateViewMatrix();
 }
-// ================== OBSERVER PATTERN ==================
 
-void Camera::attachObserver(ICameraObserver* observer)
-{
-    observerCollection.push_back(observer);
-}
-
-void Camera::detachObserver(ICameraObserver* observer)
-{
-    observerCollection.erase(
-        std::remove(observerCollection.begin(), observerCollection.end(), observer),
-        observerCollection.end()
-    );
-}
-
-void Camera::notifyObservers()
-{
-    // PULL pattern - observeri si sami vytiahnu view matrix cez getViewMatrix()
-    for (ICameraObserver* observer : observerCollection)
-    {
-        observer->update(this);
-    }
-}
-
-// ================== INPUT PROCESSING ==================
 
 void Camera::processMouseInput(double xpos, double ypos)
 {
@@ -68,30 +44,26 @@ void Camera::processMouseInput(double xpos, double ypos)
 
     updateCameraVectors();
     updateViewMatrix();
-    notifyObservers();
+    notifyAll();
 }
-
-
-
-// ================== CAMERA VECTORS UPDATE ==================
 
 void Camera::updateCameraVectors()
 {
-    // Výpočet nového front vektora
+    // new front vector
     glm::vec3 newFront;
     newFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     newFront.y = sin(glm::radians(pitch));
     newFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(newFront);
 
-    // Prepočítaj right a up vektory
+    //  right a up vectors
     right = glm::normalize(glm::cross(front, worldUp));
     up = glm::normalize(glm::cross(right, front));
 }
 
 void Camera::updateViewMatrix()
 {
-    // Prepočet view matrix - interná zodpovednosť kamery
+    // Recalculate view matrix - internal responsibility of the camera
     viewMatrix = glm::lookAt(position, position + front, up);
 }
 
@@ -104,7 +76,7 @@ void Camera::moveForward(float deltaTime)
     position.y = 0.3f;  // Ostáva nad zemou
 
     updateViewMatrix();
-    notifyObservers();
+    notifyAll();
 }
 
 void Camera::moveBackward(float deltaTime)
@@ -116,7 +88,7 @@ void Camera::moveBackward(float deltaTime)
     position.y = 0.3f;
 
     updateViewMatrix();
-    notifyObservers();
+    notifyAll();
 }
 
 void Camera::moveLeft(float deltaTime)
@@ -129,7 +101,7 @@ void Camera::moveLeft(float deltaTime)
     position.y = 0.3f;
 
     updateViewMatrix();
-    notifyObservers();
+    notifyAll();
 }
 
 void Camera::moveRight(float deltaTime)
@@ -142,6 +114,6 @@ void Camera::moveRight(float deltaTime)
     position.y = 0.3f;
 
     updateViewMatrix();
-    notifyObservers();
+    notifyAll();
 }
 

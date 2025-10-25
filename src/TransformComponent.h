@@ -14,7 +14,7 @@ protected:
 
 public:
     TransformComponent();
-    virtual glm::mat4 getMatrix(); // spoločná operácia
+    virtual glm::mat4 getMatrix(); // spoločná operácia, zoberieme maticu a tu potom nasobime vonku
 };
 
 #endif
