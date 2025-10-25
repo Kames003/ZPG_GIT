@@ -126,6 +126,8 @@ set(SOURCES
         src/models/triangle.h
         src/Subject.h
         src/Subject.cpp
+        src/SceneFactory.cpp
+        src/SceneFactory.h
 )
 
 # ========================================

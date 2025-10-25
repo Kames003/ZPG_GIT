@@ -34,6 +34,8 @@
 // 6. OBJEKTY A SCÉNY
 #include "DrawableObject.h"
 #include "Scene.h"
+#include "SceneFactory.h"
+
 
 // 7. MODEL DATA
 #include "models/sphere.h"
@@ -358,296 +360,51 @@ void Application::createModels()
 
 void Application::createScenes()
 {
-    // ============================================
-    // SCENE 1: PHONG LIGHTING TEST
-    // ============================================
-    Scene* scene1 = new Scene();
-    Translate* t1 = new Translate(0.0f, 0.0f, 0.0f);
+    printf("\n========================================\n");
+    printf("CREATING SCENES VIA FACTORY\n");
+    printf("========================================\n");
 
-    DrawableObject* obj1 = new DrawableObject(
-        model1,
-        t1,
-        shaderProgramPhong,
-        glm::vec3(0.8f, 0.2f, 0.2f)
+    // ========================================
+    // VYTVOR FACTORY
+    // ========================================
+    SceneFactory* factory = new SceneFactory(
+        // Modely
+        model1, model2, model3, modelSuziFlat, modelSuziSmooth,
+        modelTree, modelBushes, modelGift, modelPlain, modelBench,
+
+        // Základné shadery
+        shaderProgram1, shaderProgram2,
+
+        // Lighting shadery
+        shaderProgramPhong, shaderProgramLambert,
+        shaderProgramConstant, shaderProgramBlinn,
+
+        // Lesné shadery
+        shaderProgramTree, shaderProgramBush,
+        shaderProgramGround, shaderProgramPath, shaderProgramBench
     );
 
-    scene1->addObject(obj1);
-    sceneManager->addScene(scene1);
-    printf("Scene 1: Phong lighting test (red triangle)\n");
+    // ========================================
+    // VYTVOR VŠETKY SCÉNY
+    // ========================================
+    sceneManager->addScene(factory->createPhongTestScene());          // Scéna 1
+    sceneManager->addScene(factory->createSolarSystemScene());        // Scéna 2
+    sceneManager->addScene(factory->createBothObjectsScene());        // Scéna 3
+    sceneManager->addScene(factory->createRotatingTriangleScene());   // Scéna 4
+    sceneManager->addScene(factory->createLightingDemoScene());       // Scéna 5
+    sceneManager->addScene(factory->createComplexScene());            // Scéna 6
+    sceneManager->addScene(factory->createForestScene());             // Scéna 7
 
-    // ============================================
-    // SCENE 2: SOLAR SYSTEM (Sun, Earth, Moon)
-    // ============================================
-    Scene* solarScene = new Scene();
+    // ========================================
+    // ZMAŽ FACTORY
+    // ========================================
+    delete factory;
 
-    printf("\n=== Creating Scene 2: Solar System ===\n");
-
-    // 1. SLNKO
-    TransformComposite* sunTransform = new TransformComposite();
-    sunTransform->addTransformation(new Translate(0.0f, 0.0f, 0.0f));
-    sunTransform->addTransformation(new Scale(0.3f, 0.3f, 0.3f));
-
-    DrawableObject* sun = new DrawableObject(
-        model3,
-        sunTransform,
-        shaderProgramConstant,
-        glm::vec3(1.0f, 0.9f, 0.0f)
-    );
-    solarScene->addObject(sun);
-    printf("Sun created (yellow, center)\n");
-
-    // 2. ZEM
-    TransformComposite* earthOrbit = new TransformComposite();
-    earthOrbit->addTransformation(new Rotate(0.0f, 0.0f, 1.0f, 0.0f));
-    earthOrbit->addTransformation(new Translate(1.2f, 0.0f, 0.0f));
-    earthOrbit->addTransformation(new Scale(0.15f, 0.15f, 0.15f));
-
-    DrawableObject* earth = new DrawableObject(
-        model3,
-        earthOrbit,
-        shaderProgramPhong,
-        glm::vec3(0.2f, 0.4f, 0.8f)
-    );
-    solarScene->addObject(earth);
-    printf("Earth created (blue, orbiting Sun)\n");
-
-    // 3. MESIAC
-    TransformComposite* moonOrbit = new TransformComposite();
-    moonOrbit->addTransformation(new Rotate(0.0f, 0.0f, 1.0f, 0.0f));
-    moonOrbit->addTransformation(new Translate(1.2f, 0.0f, 0.0f));
-    moonOrbit->addTransformation(new Rotate(0.0f, 0.0f, 1.0f, 0.0f));
-    moonOrbit->addTransformation(new Translate(0.4f, 0.0f, 0.0f));
-    moonOrbit->addTransformation(new Scale(0.05f, 0.05f, 0.05f));
-
-    DrawableObject* moon = new DrawableObject(
-        model3,
-        moonOrbit,
-        shaderProgramLambert,
-        glm::vec3(0.7f, 0.7f, 0.7f)
-    );
-    solarScene->addObject(moon);
-    printf("Moon created (gray, orbiting Earth)\n");
-
-    sceneManager->addScene(solarScene);
-    printf("=== Solar System Scene 2 Complete ===\n\n");
-
-    // ============================================
-    // SCENE 3: BOTH OBJECTS
-    // ============================================
-    Scene* scene3 = new Scene();
-    Translate* t4 = new Translate(-0.5f, 0.0f, 0.0f);
-    DrawableObject* obj3 = new DrawableObject(model1, t4, shaderProgram1);
-    Translate* t5 = new Translate(0.5f, 0.0f, 0.0f);
-    DrawableObject* obj4 = new DrawableObject(model2, t5, shaderProgram2);
-    scene3->addObject(obj3);
-    scene3->addObject(obj4);
-    sceneManager->addScene(scene3);
-
-    // ============================================
-    // SCENE 4: ROTATING TRIANGLE
-    // ============================================
-    Scene* scene4 = new Scene();
-    TransformComposite* rotatingComposite = new TransformComposite();
-    rotatingComposite->addTransformation(new Rotate(0.0f, 0.0f, 0.0f, 1.0f));
-    DrawableObject* obj5 = new DrawableObject(model1, rotatingComposite, shaderProgram1);
-    scene4->addObject(obj5);
-    sceneManager->addScene(scene4);
-
-    // ============================================
-    // SCENE 5: LIGHTING DEMO (4 green spheres)
-    // ============================================
-    Scene* scene5 = new Scene();
-
-    printf("\n=== Creating Scene 5: Lighting Demo ===\n");
-
-    glm::vec3 greenColor(0.2f, 0.8f, 0.2f);
-
-    // Sphere 1 - Top
-    TransformComposite* sphere1Transform = new TransformComposite();
-    sphere1Transform->addTransformation(new Translate(0.0f, 0.6f, 0.0f));
-    sphere1Transform->addTransformation(new Scale(0.25f, 0.25f, 0.25f));
-    DrawableObject* sphere1 = new DrawableObject(model3, sphere1Transform, shaderProgramPhong, greenColor);
-    scene5->addObject(sphere1);
-
-    // Sphere 2 - Right
-    TransformComposite* sphere2Transform = new TransformComposite();
-    sphere2Transform->addTransformation(new Translate(0.6f, 0.0f, 0.0f));
-    sphere2Transform->addTransformation(new Scale(0.25f, 0.25f, 0.25f));
-    DrawableObject* sphere2 = new DrawableObject(model3, sphere2Transform, shaderProgramPhong, greenColor);
-    scene5->addObject(sphere2);
-
-    // Sphere 3 - Bottom
-    TransformComposite* sphere3Transform = new TransformComposite();
-    sphere3Transform->addTransformation(new Translate(0.0f, -0.6f, 0.0f));
-    sphere3Transform->addTransformation(new Scale(0.25f, 0.25f, 0.25f));
-    DrawableObject* sphere3 = new DrawableObject(model3, sphere3Transform, shaderProgramPhong, greenColor);
-    scene5->addObject(sphere3);
-
-    // Sphere 4 - Left
-    TransformComposite* sphere4Transform = new TransformComposite();
-    sphere4Transform->addTransformation(new Translate(-0.6f, 0.0f, 0.0f));
-    sphere4Transform->addTransformation(new Scale(0.25f, 0.25f, 0.25f));
-    DrawableObject* sphere4 = new DrawableObject(model3, sphere4Transform, shaderProgramPhong, greenColor);
-    scene5->addObject(sphere4);
-
-    sceneManager->addScene(scene5);
-    printf("✓ Lighting demo created\n\n");
-
-    // ============================================
-    // SCENE 6: COMPLEX SCENE (20+ objects)
-    // ============================================
-    Scene* scene6 = new Scene();
-
-    // 4 suzi flat - corners
-    TransformComposite* suzi1 = new TransformComposite();
-    suzi1->addTransformation(new Translate(-0.7f, 0.7f, 0.0f));
-    suzi1->addTransformation(new Scale(0.12f, 0.12f, 0.12f));
-    scene6->addObject(new DrawableObject(modelSuziFlat, suzi1, shaderProgram1));
-
-    TransformComposite* suzi2 = new TransformComposite();
-    suzi2->addTransformation(new Translate(0.7f, 0.7f, 0.0f));
-    suzi2->addTransformation(new Scale(0.12f, 0.12f, 0.12f));
-    scene6->addObject(new DrawableObject(modelSuziFlat, suzi2, shaderProgram1));
-
-    TransformComposite* suzi3 = new TransformComposite();
-    suzi3->addTransformation(new Translate(-0.7f, -0.7f, 0.0f));
-    suzi3->addTransformation(new Scale(0.12f, 0.12f, 0.12f));
-    scene6->addObject(new DrawableObject(modelSuziFlat, suzi3, shaderProgram1));
-
-    TransformComposite* suzi4 = new TransformComposite();
-    suzi4->addTransformation(new Translate(0.7f, -0.7f, 0.0f));
-    suzi4->addTransformation(new Scale(0.12f, 0.12f, 0.12f));
-    scene6->addObject(new DrawableObject(modelSuziFlat, suzi4, shaderProgram1));
-
-    // 5 trees - top row
-    for (int i = 0; i < 5; i++) {
-        TransformComposite* tr = new TransformComposite();
-        tr->addTransformation(new Translate(-0.6f + i * 0.3f, 0.35f, 0.0f));
-        tr->addTransformation(new Scale(0.03f, 0.03f, 0.03f));
-        scene6->addObject(new DrawableObject(modelTree, tr, shaderProgram2));
-    }
-
-    // 5 bushes - bottom row
-    for (int i = 0; i < 5; i++) {
-        TransformComposite* bu = new TransformComposite();
-        bu->addTransformation(new Translate(-0.5f + i * 0.25f, -0.35f, 0.0f));
-        bu->addTransformation(new Scale(0.15f, 0.15f, 0.15f));
-        scene6->addObject(new DrawableObject(modelBushes, bu, shaderProgram1));
-    }
-
-    // 4 balls - edges
-    float edgePositions[][2] = {{0.9f, 0.0f}, {-0.9f, 0.0f}, {0.0f, 0.9f}, {0.0f, -0.9f}};
-    for (int i = 0; i < 4; i++) {
-        TransformComposite* sph = new TransformComposite();
-        sph->addTransformation(new Translate(edgePositions[i][0], edgePositions[i][1], 0.0f));
-        sph->addTransformation(new Scale(0.07f, 0.07f, 0.07f));
-        scene6->addObject(new DrawableObject(model3, sph, shaderProgram2));
-    }
-
-    // 4 gifts - middle
-    float giftPositions[][2] = {{-0.15f, 0.1f}, {0.15f, 0.1f}, {-0.15f, -0.1f}, {0.15f, -0.1f}};
-    for (int i = 0; i < 4; i++) {
-        TransformComposite* gi = new TransformComposite();
-        gi->addTransformation(new Translate(giftPositions[i][0], giftPositions[i][1], 0.0f));
-        gi->addTransformation(new Scale(0.18f, 0.18f, 0.18f));
-        scene6->addObject(new DrawableObject(modelGift, gi, shaderProgram1));
-    }
-
-    sceneManager->addScene(scene6);
-
-    // ============================================
-    // SCENE 7: FOREST WITH LIGHTING
-    // ============================================
-    Scene* forestScene = new Scene();
-
-    printf("\n=== Creating Forest Scene 7 (with lighting) ===\n");
-
-    // Ground
-    TransformComposite* groundTransform = new TransformComposite();
-    groundTransform->addTransformation(new Translate(0.0f, 0.0f, 0.0f));
-    groundTransform->addTransformation(new Scale(20.0f, 1.0f, 20.0f));
-    forestScene->addObject(new DrawableObject(modelPlain, groundTransform, shaderProgramGround));
-
-    // Path
-    TransformComposite* pathTransform = new TransformComposite();
-    pathTransform->addTransformation(new Translate(0.0f, 0.01f, 0.0f));
-    pathTransform->addTransformation(new Scale(2.0f, 1.0f, 20.0f));
-    forestScene->addObject(new DrawableObject(modelPlain, pathTransform, shaderProgramPath));
-
-    // Benches (3x)
-    float benchPositions[][3] = {{-1.5f, 0.0f, -5.0f}, {1.5f, 0.0f, 0.0f}, {-1.5f, 0.0f, 5.0f}};
-    for (int i = 0; i < 3; i++) {
-        TransformComposite* bench = new TransformComposite();
-        bench->addTransformation(new Translate(benchPositions[i][0], benchPositions[i][1], benchPositions[i][2]));
-        bench->addTransformation(new Scale(0.8f, 0.8f, 0.8f));
-        bench->addTransformation(new Rotate(90.0f, 0.0f, 1.0f, 0.0f));
-        forestScene->addObject(new DrawableObject(modelBench, bench, shaderProgramBlinn, glm::vec3(0.5f, 0.3f, 0.1f)));
-    }
-
-    // Trees (8x8 grid)
-    int treeCount = 0;
-    float gridSpacing = 2.5f;
-    int gridSize = 8;
-
-    for (int row = 0; row < gridSize; row++) {
-        for (int col = 0; col < gridSize; col++) {
-            float x = -9.0f + col * gridSpacing;
-            float z = -9.0f + row * gridSpacing;
-
-            TransformComposite* treeTransform = new TransformComposite();
-            treeTransform->addTransformation(new Translate(x, 0.0f, z));
-            treeTransform->addTransformation(new Scale(0.3f, 0.3f, 0.3f));
-            forestScene->addObject(new DrawableObject(
-                modelTree,
-                treeTransform,
-                shaderProgramLambert,
-                glm::vec3(0.11f, 0.38f, 0.0f)
-            ));
-            treeCount++;
-        }
-    }
-    printf("Trees created: %d - Lambert lighting\n", treeCount);
-
-    // Bushes (5x10 grid)
-    int bushCount = 0;
-    float bushSpacingX = 2.0f;
-    float bushSpacingZ = 4.0f;
-    int bushRows = 5;
-    int bushCols = 10;
-
-    for (int row = 0; row < bushRows; row++) {
-        for (int col = 0; col < bushCols; col++) {
-            float x = -9.0f + col * bushSpacingX;
-            float z = -8.0f + row * bushSpacingZ;
-
-            TransformComposite* bushTransform = new TransformComposite();
-            bushTransform->addTransformation(new Translate(x, -0.001f, z));
-            bushTransform->addTransformation(new Scale(0.5f, 0.5f, 0.5f));
-            forestScene->addObject(new DrawableObject(
-                modelBushes,
-                bushTransform,
-                shaderProgramPhong,
-                glm::vec3(0.2f, 0.8f, 0.2f)
-            ));
-            bushCount++;
-        }
-    }
-    printf("Bushes created: %d - Phong lighting\n", bushCount);
-
-    sceneManager->addScene(forestScene);
-
-    printf("=== Forest Scene 7 Complete ===\n");
-    printf("Total: 1 ground, 1 path, %d trees, %d bushes, 3 benches\n\n", treeCount, bushCount);
-
-    printf("Scenes created successfully!\n");
-    printf("Scene 1: Phong lighting test (red triangle)\n");
-    printf("Scene 2: Solar System (Sun, Earth, Moon)\n");
-    printf("Scene 3: Both objects\n");
-    printf("Scene 4: Rotating triangle\n");
-    printf("Scene 5: 4 spheres lighting demo\n");
-    printf("Scene 6: Complex scene with 22 objects\n");
-    printf("Scene 7: Procedural forest (camera controls: WSAD + mouse)\n");
+    printf("========================================\n");
+    printf("ALL SCENES CREATED!\n");
+    printf("Total scenes: %d\n", sceneManager->getSceneCount());
     printf("Press keys 1-7 to switch scenes\n");
+    printf("========================================\n\n");
 }
 
 void Application::run()
