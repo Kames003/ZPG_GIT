@@ -154,15 +154,9 @@ void Application::createShaders()
     std::vector<Shader*> shaders2 = {vertexShader, fragmentShader2};
     shaderProgram2 = new ShaderProgram(shaders2);
 
+    // Pripoj statickú kameru k základným shaderom
     cameraStatic->attach(shaderProgram1);
     cameraStatic->attach(shaderProgram2);
-
-    // ✅ NOVÉ: Inicializuj aspect ratio kamery (Observer pattern!)
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    float aspectRatio = (float)width / (float)height;
-
-    cameraStatic->setAspectRatio(aspectRatio);  // ✅ Kamera notifikuje shadery!
 
     printf("✅ Static camera shaders created from files\n");
 
@@ -198,7 +192,7 @@ void Application::createShaders()
     std::vector<Shader*> blinnShaders = {lightingVertex, blinnFragment};
     shaderProgramBlinn = new ShaderProgram(blinnShaders);
 
-    // Pripoj kamery k lighting shaderom
+    // Pripoj OBE kamery k lighting shaderom (používajú sa v rôznych scénach)
     cameraStatic->attach(shaderProgramPhong);
     cameraStatic->attach(shaderProgramLambert);
     cameraStatic->attach(shaderProgramConstant);
@@ -208,9 +202,6 @@ void Application::createShaders()
     cameraDynamic->attach(shaderProgramLambert);
     cameraDynamic->attach(shaderProgramConstant);
     cameraDynamic->attach(shaderProgramBlinn);
-
-    // ✅ Kamera už má aspect ratio nastavený, len notifikuje nové shadery
-    cameraStatic->notifyAll();
 
     printf("✅ Lighting shaders created: Phong, Lambert, Constant, Blinn\n");
 
@@ -234,11 +225,9 @@ void Application::createShaders()
     std::vector<Shader*> pathShaders = {simpleVertex, pathFragment};
     shaderProgramPath = new ShaderProgram(pathShaders);
 
+    // Ground/Path shadery používajú LEN dynamickú kameru (scéna 6 - les)
     cameraDynamic->attach(shaderProgramGround);
     cameraDynamic->attach(shaderProgramPath);
-
-    // ✅ NOVÉ: Inicializuj aspect ratio pre dynamic kameru
-    cameraDynamic->setAspectRatio(aspectRatio);
 
     printf("✅ Ground/Path shaders created (constant colors, no lighting)\n");
 
@@ -259,20 +248,54 @@ void Application::createShaders()
     std::vector<Shader*> phongCorrectShaders = {lightingVertex, phongCorrectFragment};
     shaderProgramPhongCorrect = new ShaderProgram(phongCorrectShaders);
 
-    // Pripoj kamery
+    // Backface test shadery používajú LEN statickú kameru (scéna 7)
     cameraStatic->attach(shaderProgramPhongWrong);
     cameraStatic->attach(shaderProgramPhongCorrect);
 
-    // ✅ Kamera už má aspect ratio, len notifikuje nové shadery
-    cameraStatic->notifyAll();
-
     printf("✅ Backface test shaders created\n");
+
+    // ========================================
+    // ✅ KRITICKÉ: INICIALIZÁCIA ASPECT RATIO
+    // ========================================
+    // Učiteľ (0:03): "Znáš, když zmieníte okno, musíte zavolať ten viewport
+    //                 a musíte update-ovať v perspektívnej matici."
+    //
+    // Všetky shadery sú pripojené k kamerám cez Observer pattern.
+    // Teraz inicializujeme aspect ratio a notifikujeme VŠETKY shadery naraz.
+    // ========================================
+
+    printf("\n--- Initializing camera aspect ratios ---\n");
+
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    float aspectRatio = (float)width / (float)height;
+
+    // Statická kamera - nastaví aspect ratio a oznámi to VŠETKÝM pripojeným shaderom
+    cameraStatic->setAspectRatio(aspectRatio);
+    cameraStatic->flushPendingNotifications();
+    printf("  Static camera: aspect %.2f → notified %d shaders\n",
+           aspectRatio, 6);  // shaderProgram1, 2, Phong, Lambert, Constant, Blinn, PhongWrong, PhongCorrect
+
+    // Dynamická kamera - nastaví aspect ratio a oznámi to VŠETKÝM pripojeným shaderom
+    cameraDynamic->setAspectRatio(aspectRatio);
+    cameraDynamic->flushPendingNotifications();
+    printf("  Dynamic camera: aspect %.2f → notified %d shaders\n",
+           aspectRatio, 6);  // Phong, Lambert, Constant, Blinn, Ground, Path
 
     printf("\n========================================\n");
     printf("✅ ALL SHADERS CREATED FROM FILES!\n");
+    printf("   Window: %dx%d (aspect: %.2f)\n", width, height, aspectRatio);
+    printf("   Static camera observers: 8\n");
+    printf("   Dynamic camera observers: 6\n");
     printf("========================================\n\n");
 
-    // Vytvor controller AŽ TERAZ (po vytvorení shaderov)
+    // ========================================
+    // VYTVORENIE CONTROLLERA
+    // ========================================
+    // Controller sa vytvára AŽ TERAZ, pretože potrebuje prístup k shaderom
+    // pre správnu aktualizáciu svetiel pri prepínaní scén
+    // ========================================
+
     controller = new Controller(
         window, cameraStatic, cameraDynamic, sceneManager,
         shaderProgramPhong, shaderProgramLambert, shaderProgramBlinn,
