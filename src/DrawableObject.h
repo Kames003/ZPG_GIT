@@ -35,6 +35,10 @@ public:
 
     // ← NOVÝ: Setter pre farbu
     void setObjectColor(const glm::vec3& color);
+
+    void setShaderProgram(ShaderProgram* sp) {
+        shaderProgram = sp;
+    }
 };
 
 #endif

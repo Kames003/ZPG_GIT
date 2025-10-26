@@ -32,9 +32,13 @@ public:
     void setUniform(const char* name, float value);
     void setUniform(const char* name, const glm::vec3& value);
     void setUniform(const char* name, const glm::mat4& value);
+    void setUniform(const char* name, const glm::vec4& value);
 
     // Observer interface
     void notify(Subject* subject) override;
+
+    void setLights(const std::vector<Light*>& lights);
+    void setLight(int index, Light* light);
 
 };
 

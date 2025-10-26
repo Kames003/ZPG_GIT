@@ -117,8 +117,8 @@ set(SOURCES
         src/models/plane.h
         src/models/lamp.h
         src/models/bench.h
-        src/Contoller.cpp
-        src/Contoller.h
+        src/Controller.cpp
+        src/Controller.h
         src/Light.cpp
         src/Light.h
         src/ShaderLoader.cpp

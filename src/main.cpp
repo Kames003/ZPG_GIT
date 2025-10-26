@@ -9,6 +9,7 @@ int main()
     app->createShaders();
     app->createModels();
     app->createScenes();
+    app->setupSceneLights();
     app->run();
     
     delete app;

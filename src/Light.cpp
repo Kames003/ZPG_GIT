@@ -1,22 +1,15 @@
 #include "Light.h"
-#include "Light.h"
-#include <algorithm>
+#include "TransformComponent.h"
 
-Light::Light(glm::vec3 pos, glm::vec3 col, float intens)
-    : position(pos), color(col), intensity(intens)
-{
-}
-
-void Light::setPosition(const glm::vec3& pos)
-{
-    position = pos;
-    notifyAll();
-}
+/**
+ * Učiteľ (27:10): "Observer sa musí rozhodnúť, čo by delať"
+ * → Settery len notifikujú, Observer si sám vytiahne dáta (PULL prístup)
+ */
 
 void Light::setColor(const glm::vec3& col)
 {
     color = col;
-    notifyAll();
+    notifyAll();  // ← Učiteľ (24:41): "notify all"
 }
 
 void Light::setIntensity(float intens)

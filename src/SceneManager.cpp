@@ -1,7 +1,8 @@
 #include "SceneManager.h"
 #include "Scene.h"
+#include "Light.h"
 
-SceneManager::SceneManager() : activeSceneIndex(0) 
+SceneManager::SceneManager() : activeSceneIndex(0)
 {
     printf("SceneManager created\n");
 }
@@ -17,7 +18,20 @@ void SceneManager::switchToScene(int index)
     if (index >= 0 && index < (int)scenes.size())
     {
         activeSceneIndex = index;
-        printf("\n>>> SWITCHED TO SCENE %d <<<\n\n", index + 1);
+
+        // ✅ PRIDANÉ: Notifikuj všetky svetlá v novej scéne!
+        Scene* scene = scenes[index];
+        if (scene) {
+            std::vector<Light*>& lights = scene->getLights();
+            for (Light* light : lights) {
+                if (light) {
+                    light->notifyAll();  // ← Observer pattern!
+                }
+            }
+        }
+
+        printf("\n>>> SWITCHED TO SCENE %d <<<\n", index + 1);
+        printf("    Notified %d lights\n\n", scene ? scene->getLightCount() : 0);
     }
     else
     {

@@ -1,29 +1,71 @@
 #version 330
 
+// ========================================
+// INPUT
+// ========================================
 in vec4 worldPosition;
 in vec3 worldNormal;
 
+// ========================================
+// OUTPUT
+// ========================================
 out vec4 out_Color;
 
-uniform vec3 lightPosition;
-uniform vec3 objectColor;
+// ========================================
+// LIGHT STRUCT
+// ========================================
+#define MAX_LIGHTS 8
 
+struct Light {
+    vec4 position;
+    vec3 ambient;    // Používa sa LEN pre prvé svetlo
+    vec3 diffuse;
+    vec3 specular;   // Nepoužíva sa v Lambertovi
+    float intensity;
+};
+
+// ========================================
+// UNIFORMS
+// ========================================
+uniform vec3 objectColor;
+uniform Light lights[MAX_LIGHTS];
+uniform int numberOfLights;
+
+// ========================================
+// MAIN - LAMBERT SHADING
+// ========================================
 void main(void)
 {
-    // AMBIENT (jedná sa o základné svetlo)
-    vec3 ambient = 0.3 * objectColor;
+    // ✅ GLOBÁLNE AMBIENT - iba raz, mimo cyklu
+    vec3 globalAmbient = objectColor * 0.15;
 
-    // DIFFUSE (Lambert)
-    vec3 norm = normalize(worldNormal);
-    vec3 lightDir = normalize(lightPosition - worldPosition.xyz);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * objectColor;
+    // ✅ AMBIENT z prvého svetla - LEN RAZ!
+    vec3 ambient = vec3(0.0);
+    if (numberOfLights > 0) {
+        ambient = lights[0].ambient * objectColor * 0.1;
+    }
 
-    // ← ATTENUATION ( útlm sveltla na základe vzdialenosti )
-    float distance = length(lightPosition - worldPosition.xyz);
-    float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
+    // Akumulácia diffuse
+    vec3 totalDiffuse = vec3(0.0);
 
-    // FINAL
-    vec3 result = ambient + attenuation * diffuse;
+    // ✅ Cyklus cez všetky svetlá - LEN diffuse!
+    for (int i = 0; i < numberOfLights; i++) {
+        Light light = lights[i];
+
+        // DIFFUSE (Lambertian reflection)
+        vec3 norm = normalize(worldNormal);
+        vec3 lightDir = normalize(light.position.xyz - worldPosition.xyz);
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * objectColor * light.diffuse * light.intensity;
+
+        // ATTENUATION
+        float distance = length(light.position.xyz - worldPosition.xyz);
+        float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
+
+        totalDiffuse += attenuation * diffuse;
+    }
+
+    // ✅ FINAL COLOR
+    vec3 result = globalAmbient + ambient + totalDiffuse;
     out_Color = vec4(result, 1.0);
 }

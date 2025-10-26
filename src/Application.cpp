@@ -20,9 +20,8 @@
 #include "ShaderProgram.h"
 #include "Model.h"
 #include "Camera.h"
-#include "Contoller.h"
+#include "Controller.h"
 #include "ShaderLoader.h"
-
 
 // 5. TRANSFORMÁCIE
 #include "TransformComponent.h"
@@ -35,7 +34,7 @@
 #include "DrawableObject.h"
 #include "Scene.h"
 #include "SceneFactory.h"
-
+#include "Light.h"
 
 // 7. MODEL DATA
 #include "models/sphere.h"
@@ -48,7 +47,6 @@
 #include "models/bench.h"
 #include "models/triangle.h"
 #include "models/square.h"
-
 
 Application::Application()
     : rotationAngle(0.0f)
@@ -123,7 +121,9 @@ void Application::initialization()
     glfwGetVersion(&major, &minor, &revision);
     printf("Using GLFW %i.%i.%i\n", major, minor, revision);
 
-    controller = new Controller(window, cameraStatic, cameraDynamic, sceneManager);
+    // BOD 3c: Framebuffer resize callback
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, Application::framebufferSizeCallback);
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -135,9 +135,8 @@ void Application::createShaders()
     printf("========================================\n");
 
     // ========================================
-    // STATIC CAMERA SHADERY (scény 1-6) - ZO SÚBOROV
+    // STATIC CAMERA SHADERY
     // ========================================
-
     printf("\n--- Creating basic shaders from files ---\n");
 
     vertexShader = new Shader(GL_VERTEX_SHADER,
@@ -155,97 +154,21 @@ void Application::createShaders()
     std::vector<Shader*> shaders2 = {vertexShader, fragmentShader2};
     shaderProgram2 = new ShaderProgram(shaders2);
 
-    // Pripoj statickú kameru
     cameraStatic->attach(shaderProgram1);
     cameraStatic->attach(shaderProgram2);
 
-    // Projection matrix - DYNAMICKÝ ASPECT RATIO
+    // ✅ NOVÉ: Inicializuj aspect ratio kamery (Observer pattern!)
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     float aspectRatio = (float)width / (float)height;
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-    printf("Aspect ratio: %.3f (%dx%d)\n", aspectRatio, width, height);
 
-    shaderProgram1->use();
-    shaderProgram1->setUniform("projectionMatrix", projection);
+    cameraStatic->setAspectRatio(aspectRatio);  // ✅ Kamera notifikuje shadery!
 
-    shaderProgram2->use();
-    shaderProgram2->setUniform("projectionMatrix", projection);
-
-    cameraStatic->notifyAll();
-
-    printf("✓ Static camera shaders created from files\n");
+    printf("✅ Static camera shaders created from files\n");
 
     // ========================================
-    // DYNAMIC CAMERA SHADERY (scéna 7 - les) - ZO SÚBOROV
+    // LIGHTING SHADERY
     // ========================================
-
-    printf("\n--- Creating forest shaders from files ---\n");
-
-    Shader* forestVertex = new Shader(GL_VERTEX_SHADER,
-        new FileShaderLoader("../src/shaders/forest_vertex.vert"));
-
-    Shader* treeFragment = new Shader(GL_FRAGMENT_SHADER,
-        new FileShaderLoader("../src/shaders/tree_fragment.frag"));
-
-    Shader* bushFragment = new Shader(GL_FRAGMENT_SHADER,
-        new FileShaderLoader("../src/shaders/bush_fragment.frag"));
-
-    Shader* groundFragment = new Shader(GL_FRAGMENT_SHADER,
-        new FileShaderLoader("../src/shaders/ground_fragment.frag"));
-
-    Shader* pathFragment = new Shader(GL_FRAGMENT_SHADER,
-        new FileShaderLoader("../src/shaders/path_fragment.frag"));
-
-    Shader* benchFragment = new Shader(GL_FRAGMENT_SHADER,
-        new FileShaderLoader("../src/shaders/bench_fragment.frag"));
-
-    std::vector<Shader*> treeShaders = {forestVertex, treeFragment};
-    shaderProgramTree = new ShaderProgram(treeShaders);
-
-    std::vector<Shader*> bushShaders = {forestVertex, bushFragment};
-    shaderProgramBush = new ShaderProgram(bushShaders);
-
-    std::vector<Shader*> groundShaders = {forestVertex, groundFragment};
-    shaderProgramGround = new ShaderProgram(groundShaders);
-
-    std::vector<Shader*> pathShaders = {forestVertex, pathFragment};
-    shaderProgramPath = new ShaderProgram(pathShaders);
-
-    std::vector<Shader*> benchShaders = {forestVertex, benchFragment};
-    shaderProgramBench = new ShaderProgram(benchShaders);
-
-    // Pripoj dynamickú kameru
-    cameraDynamic->attach(shaderProgramTree);
-    cameraDynamic->attach(shaderProgramBush);
-    cameraDynamic->attach(shaderProgramGround);
-    cameraDynamic->attach(shaderProgramPath);
-    cameraDynamic->attach(shaderProgramBench);
-
-    // Projection matrix pre lesné shadery
-    shaderProgramTree->use();
-    shaderProgramTree->setUniform("projectionMatrix", projection);
-
-    shaderProgramBush->use();
-    shaderProgramBush->setUniform("projectionMatrix", projection);
-
-    shaderProgramGround->use();
-    shaderProgramGround->setUniform("projectionMatrix", projection);
-
-    shaderProgramPath->use();
-    shaderProgramPath->setUniform("projectionMatrix", projection);
-
-    shaderProgramBench->use();
-    shaderProgramBench->setUniform("projectionMatrix", projection);
-
-    cameraDynamic->notifyAll();
-
-    printf("✓ Dynamic camera shaders created from files\n");
-
-    // ========================================
-    // LIGHTING SHADERY (zo súborov)
-    // ========================================
-
     printf("\n--- Creating lighting shaders from files ---\n");
 
     Shader* lightingVertex = new Shader(GL_VERTEX_SHADER,
@@ -263,7 +186,6 @@ void Application::createShaders()
     Shader* blinnFragment = new Shader(GL_FRAGMENT_SHADER,
         new FileShaderLoader("../src/shaders/blinn_fragment.frag"));
 
-    // Vytvor shader programy
     std::vector<Shader*> phongShaders = {lightingVertex, phongFragment};
     shaderProgramPhong = new ShaderProgram(phongShaders);
 
@@ -276,28 +198,6 @@ void Application::createShaders()
     std::vector<Shader*> blinnShaders = {lightingVertex, blinnFragment};
     shaderProgramBlinn = new ShaderProgram(blinnShaders);
 
-    // ========================================
-    // LIGHT SETUP
-    // ========================================
-
-    printf("\n--- Setting up light ---\n");
-
-    mainLight = new Light(
-        glm::vec3(0.0f, 0.0f, 0.2f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        1.0f
-    );
-
-    printf("Light position: (%.1f, %.1f, %.1f)\n",
-           mainLight->getPosition().x,
-           mainLight->getPosition().y,
-           mainLight->getPosition().z);
-
-    // Pripoj light observers
-    mainLight->attach(shaderProgramPhong);
-    mainLight->attach(shaderProgramLambert);
-    mainLight->attach(shaderProgramBlinn);
-
     // Pripoj kamery k lighting shaderom
     cameraStatic->attach(shaderProgramPhong);
     cameraStatic->attach(shaderProgramLambert);
@@ -309,41 +209,80 @@ void Application::createShaders()
     cameraDynamic->attach(shaderProgramConstant);
     cameraDynamic->attach(shaderProgramBlinn);
 
-    // Projection matrix pre lighting shadery
-    shaderProgramPhong->use();
-    shaderProgramPhong->setUniform("projectionMatrix", projection);
-
-    shaderProgramLambert->use();
-    shaderProgramLambert->setUniform("projectionMatrix", projection);
-
-    shaderProgramConstant->use();
-    shaderProgramConstant->setUniform("projectionMatrix", projection);
-
-    shaderProgramBlinn->use();
-    shaderProgramBlinn->setUniform("projectionMatrix", projection);
-
-    // KRITICKÉ: Najprv notifikuj svetlo, potom kameru!
-    printf("\n--- Sending initial notifications ---\n");
-    mainLight->notifyAll();
-    printf("✓ Light notifications sent\n");
-
+    // ✅ Kamera už má aspect ratio nastavený, len notifikuje nové shadery
     cameraStatic->notifyAll();
-    printf("✓ Camera notifications sent\n");
 
-    printf("\n✓ Lighting shaders created: Phong, Lambert, Constant, Blinn\n");
+    printf("✅ Lighting shaders created: Phong, Lambert, Constant, Blinn\n");
+
+    // ========================================
+    // DYNAMIC CAMERA SHADERY (Ground/Path)
+    // ========================================
+    printf("\n--- Creating forest ground/path shaders from files ---\n");
+
+    Shader* simpleVertex = new Shader(GL_VERTEX_SHADER,
+        new FileShaderLoader("../src/shaders/simple_vertex.vert"));
+
+    Shader* groundFragment = new Shader(GL_FRAGMENT_SHADER,
+        new FileShaderLoader("../src/shaders/ground_fragment.frag"));
+
+    Shader* pathFragment = new Shader(GL_FRAGMENT_SHADER,
+        new FileShaderLoader("../src/shaders/path_fragment.frag"));
+
+    std::vector<Shader*> groundShaders = {simpleVertex, groundFragment};
+    shaderProgramGround = new ShaderProgram(groundShaders);
+
+    std::vector<Shader*> pathShaders = {simpleVertex, pathFragment};
+    shaderProgramPath = new ShaderProgram(pathShaders);
+
+    cameraDynamic->attach(shaderProgramGround);
+    cameraDynamic->attach(shaderProgramPath);
+
+    // ✅ NOVÉ: Inicializuj aspect ratio pre dynamic kameru
+    cameraDynamic->setAspectRatio(aspectRatio);
+
+    printf("✅ Ground/Path shaders created (constant colors, no lighting)\n");
+
+    // ========================================
+    // BOD 3b: BACKFACE TEST SHADERY
+    // ========================================
+    printf("\n--- Creating backface test shaders ---\n");
+
+    Shader* phongWrongFragment = new Shader(GL_FRAGMENT_SHADER,
+        new FileShaderLoader("../src/shaders/phong_wrong_fragment.frag"));
+
+    Shader* phongCorrectFragment = new Shader(GL_FRAGMENT_SHADER,
+        new FileShaderLoader("../src/shaders/phong_correct_fragment.frag"));
+
+    std::vector<Shader*> phongWrongShaders = {lightingVertex, phongWrongFragment};
+    shaderProgramPhongWrong = new ShaderProgram(phongWrongShaders);
+
+    std::vector<Shader*> phongCorrectShaders = {lightingVertex, phongCorrectFragment};
+    shaderProgramPhongCorrect = new ShaderProgram(phongCorrectShaders);
+
+    // Pripoj kamery
+    cameraStatic->attach(shaderProgramPhongWrong);
+    cameraStatic->attach(shaderProgramPhongCorrect);
+
+    // ✅ Kamera už má aspect ratio, len notifikuje nové shadery
+    cameraStatic->notifyAll();
+
+    printf("✅ Backface test shaders created\n");
 
     printf("\n========================================\n");
-    printf("✓ ALL SHADERS CREATED FROM FILES!\n");
-    printf("✓ Static camera → simple shaders\n");
-    printf("✓ Dynamic camera → forest shaders\n");
-    printf("✓ Lighting → Phong, Lambert, Constant, Blinn\n");
+    printf("✅ ALL SHADERS CREATED FROM FILES!\n");
     printf("========================================\n\n");
-}
 
+    // Vytvor controller AŽ TERAZ (po vytvorení shaderov)
+    controller = new Controller(
+        window, cameraStatic, cameraDynamic, sceneManager,
+        shaderProgramPhong, shaderProgramLambert, shaderProgramBlinn,
+        shaderProgramPhongWrong, shaderProgramPhongCorrect
+    );
+    printf("Controller created with shader access\n");
+}
 
 void Application::createModels()
 {
-
     modelBench = new Model(benchVertices, 108);
     model1 = new Model((float*)triangle, 3);
     model2 = new Model((float*)square, 6);
@@ -364,9 +303,6 @@ void Application::createScenes()
     printf("CREATING SCENES VIA FACTORY\n");
     printf("========================================\n");
 
-    // ========================================
-    // VYTVOR FACTORY
-    // ========================================
     SceneFactory* factory = new SceneFactory(
         // Modely
         model1, model2, model3, modelSuziFlat, modelSuziSmooth,
@@ -379,25 +315,21 @@ void Application::createScenes()
         shaderProgramPhong, shaderProgramLambert,
         shaderProgramConstant, shaderProgramBlinn,
 
-        // Lesné shadery
-        shaderProgramTree, shaderProgramBush,
-        shaderProgramGround, shaderProgramPath, shaderProgramBench
+        // Ground/Path shadery (bez osvetlenia)
+        shaderProgramGround, shaderProgramPath,
+
+        // BOD 3b: Backface test shadery
+        shaderProgramPhongWrong, shaderProgramPhongCorrect
     );
 
-    // ========================================
-    // VYTVOR VŠETKY SCÉNY
-    // ========================================
     sceneManager->addScene(factory->createPhongTestScene());          // Scéna 1
     sceneManager->addScene(factory->createSolarSystemScene());        // Scéna 2
     sceneManager->addScene(factory->createBothObjectsScene());        // Scéna 3
     sceneManager->addScene(factory->createRotatingTriangleScene());   // Scéna 4
     sceneManager->addScene(factory->createLightingDemoScene());       // Scéna 5
-    sceneManager->addScene(factory->createComplexScene());            // Scéna 6
-    sceneManager->addScene(factory->createForestScene());             // Scéna 7
+    sceneManager->addScene(factory->createForestScene());             // Scéna 6
+    sceneManager->addScene(factory->createBackfaceLightingTest());    // Scéna 7
 
-    // ========================================
-    // ZMAŽ FACTORY
-    // ========================================
     delete factory;
 
     printf("========================================\n");
@@ -407,17 +339,133 @@ void Application::createScenes()
     printf("========================================\n\n");
 }
 
-void Application::run()
+void Application::setupSceneLights()
 {
+    printf("\n========================================\n");
+    printf("SETTING UP SCENE LIGHTS\n");
+    printf("========================================\n");
+
+    for (int i = 0; i < sceneManager->getSceneCount(); i++) {
+        Scene* scene = sceneManager->getScene(i);
+        if (!scene) continue;
+
+        printf("\nScene %d (index %d):\n", i + 1, i);
+
+        std::vector<Light*>& lights = scene->getLights();
+        if (lights.empty()) {
+            printf("  - No lights\n");
+            continue;
+        }
+
+        printf("  - %d lights detected\n", (int)lights.size());
+
+        // Pripoj observerov pre každé svetlo
+        for (Light* light : lights) {
+            if (!light) continue;
+
+            // Scéna 6 = les (index 5)
+            if (i == 5) {
+                light->attach(shaderProgramLambert);
+                light->attach(shaderProgramPhong);
+                light->attach(shaderProgramBlinn);
+            }
+            // Scéna 7 = backface test (index 6)
+            else if (i == 6) {
+                light->attach(shaderProgramPhongWrong);
+                light->attach(shaderProgramPhongCorrect);
+            }
+            // Ostatné scény
+            else {
+                light->attach(shaderProgramPhong);
+                light->attach(shaderProgramLambert);
+                light->attach(shaderProgramBlinn);
+            }
+        }
+
+        // Pošli svetlá do shaderov
+        if (i == 5) {
+            // Les používa všetky tri shadery (index 5)
+            shaderProgramLambert->setLights(lights);
+            shaderProgramPhong->setLights(lights);
+            shaderProgramBlinn->setLights(lights);
+            printf("  ✅ Sent to forest shaders (Lambert, Phong, Blinn)\n");
+        }
+        else if (i == 6) {
+            // Backface test (index 6)
+            shaderProgramPhongWrong->setLights(lights);
+            shaderProgramPhongCorrect->setLights(lights);
+            printf("  ✅ Sent to backface test shaders (PhongWrong, PhongCorrect)\n");
+        }
+        else {
+            // Ostatné scény
+            shaderProgramPhong->setLights(lights);
+            shaderProgramLambert->setLights(lights);
+            shaderProgramBlinn->setLights(lights);
+            printf("  ✅ Sent to lighting shaders\n");
+        }
+
+        // Notifikuj všetky svetlá
+        for (Light* light : lights) {
+            if (light) {
+                light->notifyAll();
+            }
+        }
+        printf("  ✅ Initial notifications sent\n");
+    }
+
+    // Prepni na prvú scénu
+    sceneManager->switchToScene(0);
+
+    printf("\n========================================\n");
+    printf("✅ ALL SCENE LIGHTS CONFIGURED\n");
+    printf("========================================\n\n");
+}
+
+// ========================================
+// BOD 3c: FRAMEBUFFER RESIZE
+// ========================================
+void Application::framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    if (app) {
+        app->updateViewport(width, height);
+    }
+}
+
+void Application::updateViewport(int width, int height)
+{
+    glViewport(0, 0, width, height);
+
+    float aspectRatio = (float)width / (float)height;
+
+    // ✅ OPTIMALIZOVANÉ: Aktualizuj len aktívnu kameru
+    Camera* activeCamera = (sceneManager->getActiveSceneIndex() == 5)
+                            ? cameraDynamic
+                            : cameraStatic;
+
+    activeCamera->setAspectRatio(aspectRatio);
+
+    printf("✅ Viewport updated: %dx%d (aspect: %.2f) - notification pending\n",
+           width, height, aspectRatio);
+}
+
+void Application::run() {
     double lastTime = glfwGetTime();
 
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         double currentTime = glfwGetTime();
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
 
-        if (sceneManager->getActiveSceneIndex() == 6)
+        // ✅ Notifikuj len aktívnu kameru
+        Camera* activeCamera = (sceneManager->getActiveSceneIndex() == 5)
+                                ? cameraDynamic
+                                : cameraStatic;
+
+        activeCamera->flushPendingNotifications();
+
+        // Kurzor
+        if (sceneManager->getActiveSceneIndex() == 5)
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         else
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -430,15 +478,13 @@ void Application::run()
         // SCENE 2: SOLAR SYSTEM ANIMATION
         // ============================================
         if (sceneManager->getActiveSceneIndex() == 1) {
-            // ✅ Priamo z času - žiadne static premenné!
             float currentTime = (float)glfwGetTime();
-            float earthAngle = fmod(currentTime * 30.0f, 360.0f);  // 30°/s
-            float moonAngle = fmod(currentTime * 48.0f, 360.0f);   // 48°/s
+            float earthAngle = fmod(currentTime * 30.0f, 360.0f);
+            float moonAngle = fmod(currentTime * 48.0f, 360.0f);
 
             Scene* solarScene = sceneManager->getActiveScene();
             if (solarScene && solarScene->getObjects().size() >= 3) {
 
-                // Earth (index 1)
                 DrawableObject* earth = solarScene->getObjects()[1];
                 TransformComposite* earthComp = dynamic_cast<TransformComposite*>(
                     earth->getTransformation()
@@ -450,23 +496,16 @@ void Application::run()
                     earthComp->addTransformation(new Scale(0.15f, 0.15f, 0.15f));
                 }
 
-                // Moon (index 2)
                 DrawableObject* moon = solarScene->getObjects()[2];
                 TransformComposite* moonComp = dynamic_cast<TransformComposite*>(
                     moon->getTransformation()
                 );
                 if (moonComp) {
                     moonComp->clear();
-
-                    // Phase 1: Follow Earth around Sun
                     moonComp->addTransformation(new Rotate(earthAngle, 0.0f, 1.0f, 0.0f));
                     moonComp->addTransformation(new Translate(1.2f, 0.0f, 0.0f));
-
-                    // Phase 2: Orbit around Earth
                     moonComp->addTransformation(new Rotate(moonAngle, 0.0f, 1.0f, 0.0f));
                     moonComp->addTransformation(new Translate(0.4f, 0.0f, 0.0f));
-
-                    // Phase 3: Size
                     moonComp->addTransformation(new Scale(0.05f, 0.05f, 0.05f));
                 }
             }
@@ -476,7 +515,7 @@ void Application::run()
         // SCENE 4: ROTATING TRIANGLE
         // ============================================
         if (sceneManager->getActiveSceneIndex() == 3) {
-            float rotationAngle = fmod((float)glfwGetTime() * 60.0f, 360.0f);  // 60°/s
+            float rotationAngle = fmod((float)glfwGetTime() * 60.0f, 360.0f);
 
             Scene* scene4 = sceneManager->getActiveScene();
             if (scene4) {
@@ -491,12 +530,103 @@ void Application::run()
             }
         }
 
+        // ============================================
+        // SCENE 6: FIREFLIES ANIMATION (index 5!)
+        // ============================================
+        if (sceneManager->getActiveSceneIndex() == 5) {
+            Scene* forestScene = sceneManager->getActiveScene();
+
+            if (forestScene && forestScene->getLightCount() >= 4) {
+                float time = (float)glfwGetTime();
+
+                // SVETLUŠKA 1
+                Light* firefly1 = forestScene->getLights()[0];
+                float x1 = -3.0f + 2.0f * sin(time * 0.5f);
+                float y1 = 1.5f + 0.5f * cos(time * 0.7f);
+                float z1 = 2.0f + 1.5f * sin(time * 0.3f);
+
+                TransformComposite* newTransform1 = new TransformComposite();
+                newTransform1->addTransformation(new Translate(x1, y1, z1));
+                firefly1->setTransformation(newTransform1);
+
+                DrawableObject* fireflyVisual1 = forestScene->getObjects()[119];
+                TransformComposite* visualTransform1 = dynamic_cast<TransformComposite*>(
+                    fireflyVisual1->getTransformation()
+                );
+                if (visualTransform1) {
+                    visualTransform1->clear();
+                    visualTransform1->addTransformation(new Translate(x1, y1, z1));
+                    visualTransform1->addTransformation(new Scale(0.05f, 0.05f, 0.05f));
+                }
+
+                // SVETLUŠKA 2
+                Light* firefly2 = forestScene->getLights()[1];
+                float radius = 3.0f;
+                float x2 = radius * cos(time * 0.6f);
+                float y2 = 1.2f + 0.3f * sin(time * 0.9f);
+                float z2 = radius * sin(time * 0.6f);
+
+                TransformComposite* newTransform2 = new TransformComposite();
+                newTransform2->addTransformation(new Translate(x2, y2, z2));
+                firefly2->setTransformation(newTransform2);
+
+                DrawableObject* fireflyVisual2 = forestScene->getObjects()[120];
+                TransformComposite* visualTransform2 = dynamic_cast<TransformComposite*>(
+                    fireflyVisual2->getTransformation()
+                );
+                if (visualTransform2) {
+                    visualTransform2->clear();
+                    visualTransform2->addTransformation(new Translate(x2, y2, z2));
+                    visualTransform2->addTransformation(new Scale(0.05f, 0.05f, 0.05f));
+                }
+
+                // SVETLUŠKA 3
+                Light* firefly3 = forestScene->getLights()[2];
+                float y3 = 2.0f + 1.0f * sin(time * 0.8f);
+                float x3 = 0.5f * cos(time * 0.4f);
+                float z3 = 0.5f * sin(time * 0.4f);
+
+                TransformComposite* newTransform3 = new TransformComposite();
+                newTransform3->addTransformation(new Translate(x3, y3, z3));
+                firefly3->setTransformation(newTransform3);
+
+                DrawableObject* fireflyVisual3 = forestScene->getObjects()[121];
+                TransformComposite* visualTransform3 = dynamic_cast<TransformComposite*>(
+                    fireflyVisual3->getTransformation()
+                );
+                if (visualTransform3) {
+                    visualTransform3->clear();
+                    visualTransform3->addTransformation(new Translate(x3, y3, z3));
+                    visualTransform3->addTransformation(new Scale(0.05f, 0.05f, 0.05f));
+                }
+
+                // SVETLUŠKA 4
+                Light* firefly4 = forestScene->getLights()[3];
+                float x4 = -2.0f + 2.0f * sin(time * 0.5f);
+                float y4 = 1.8f + 0.4f * cos(time * 1.0f);
+                float z4 = -6.0f + 1.5f * sin(time * 1.0f);
+
+                TransformComposite* newTransform4 = new TransformComposite();
+                newTransform4->addTransformation(new Translate(x4, y4, z4));
+                firefly4->setTransformation(newTransform4);
+
+                DrawableObject* fireflyVisual4 = forestScene->getObjects()[122];
+                TransformComposite* visualTransform4 = dynamic_cast<TransformComposite*>(
+                    fireflyVisual4->getTransformation()
+                );
+                if (visualTransform4) {
+                    visualTransform4->clear();
+                    visualTransform4->addTransformation(new Translate(x4, y4, z4));
+                    visualTransform4->addTransformation(new Scale(0.05f, 0.05f, 0.05f));
+                }
+            }
+        }
+
         sceneManager->drawActiveScene();
 
         glfwPollEvents();
         glfwSwapBuffers(window);
     }
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }
+
+

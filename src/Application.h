@@ -7,8 +7,7 @@
 #include <vector>
 #include "SceneManager.h"
 #include "Camera.h"
-#include "Contoller.h"
-#include "Light.h"
+#include "Controller.h"
 
 using namespace std;
 
@@ -34,22 +33,20 @@ private:
     Shader* fragmentShader2;
     ShaderProgram* shaderProgram1;
     ShaderProgram* shaderProgram2;
-    ShaderProgram* shaderProgramTree;
-    ShaderProgram* shaderProgramBush;
+
+    // Len Ground/Path (BEZ osvetlenia)
     ShaderProgram* shaderProgramGround;
     ShaderProgram* shaderProgramPath;
-    ShaderProgram* shaderProgramBench;
 
-    // lightning shaders
-
-
+    // Lightning shaders
     ShaderProgram* shaderProgramPhong;
     ShaderProgram* shaderProgramLambert;
     ShaderProgram* shaderProgramConstant;
     ShaderProgram* shaderProgramBlinn;
 
-    Light* mainLight;
-
+    // BOD 3b: Backface test shadery
+    ShaderProgram* shaderProgramPhongWrong;
+    ShaderProgram* shaderProgramPhongCorrect;
 
     // Models
     Model* model1;
@@ -73,11 +70,17 @@ public:
     void createShaders();
     void createModels();
     void createScenes();
+    void setupSceneLights();
     void run();
 
-    // ← NOVÉ: Gettery pre controller
+    // BOD 3c: Framebuffer resize
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+    void updateViewport(int width, int height);  // ✅ ZMENENÉ z updateProjectionMatrix
+
+    // Gettery pre controller
     Camera* getCameraStatic() { return cameraStatic; }
     Camera* getCameraDynamic() { return cameraDynamic; }
+    SceneManager* getSceneManager() { return sceneManager; }
 };
 
 #endif

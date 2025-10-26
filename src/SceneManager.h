@@ -16,21 +16,24 @@ private:
 public:
     SceneManager();
     
-
     void addScene(Scene* scene);
     void switchToScene(int index);
     void switchToNextScene();
     void switchToPreviousScene();
-    
 
     Scene* getActiveScene();
     int getActiveSceneIndex() const { return activeSceneIndex; }
     int getSceneCount() const { return scenes.size(); }
-    
+
+    // ← NOVÁ METÓDA!
+    Scene* getScene(int index) const {
+        if (index >= 0 && index < (int)scenes.size()) {
+            return scenes[index];
+        }
+        return nullptr;
+    }
 
     void drawActiveScene();
-    
-
     void clear();
 };
 

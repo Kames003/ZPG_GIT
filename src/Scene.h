@@ -5,21 +5,42 @@
 #include <vector>
 
 class DrawableObject;
+class Light;
 
-using namespace std;
-
+/**
+ * Scéna = kolekcia objektov + svetiel
+ *
+ * KOMPOZÍCIA: Každá scéna má svoje svetlá (ako odporúčal učiteľ)
+ * - Svetlá sa NEZDIEĽAJÚ medzi scénami
+ * - Každá scéna si spravuje svoje osvetlenie
+ * - Automaticky priraďuje indexy svetlám
+ */
 class Scene
 {
 private:
-    vector<DrawableObject*> objects;
+    std::vector<DrawableObject*> objects;
+    std::vector<Light*> lights;
 
 public:
     Scene();
 
+
+
+    // ========================================
+    // OBJEKTY
+    // ========================================
     void addObject(DrawableObject* object);
     void draw();
     void clear();
-    vector<DrawableObject*>& getObjects() { return objects; }
+    std::vector<DrawableObject*>& getObjects();
+
+    // ========================================
+    // SVETLÁ
+    // ========================================
+    void addLight(Light* light);
+    void removeLight(Light* light);
+    std::vector<Light*>& getLights();
+    int getLightCount() const;
 };
 
 #endif
