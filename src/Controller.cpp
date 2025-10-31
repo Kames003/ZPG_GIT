@@ -115,10 +115,10 @@ void Controller::keyCallback(GLFWwindow* window, int key, int scancode, int acti
 
                     if (ctrl->usingCorrectShader) {
                         sphere->setShaderProgram(ctrl->shaderPhongCorrect);
-                        printf(">>> CORRECT shader (backface is DARK) ✅ <<<\n");
+                        printf(">>> CORRECT shader (backface is DARK)<<<\n");
                     } else {
                         sphere->setShaderProgram(ctrl->shaderPhongWrong);
-                        printf(">>> WRONG shader (backface GLOWS) ❌ <<<\n");
+                        printf(">>> WRONG shader (backface GLOWS)<<<\n");
                     }
 
                     // Update svetiel pre nový shader
@@ -237,7 +237,7 @@ void Controller::keyCallback(GLFWwindow* window, int key, int scancode, int acti
                                     : ctrl->cameraStatic;
 
             activeCamera->setFOV(130.0f);
-            activeCamera->flushPendingNotifications();
+            activeCamera->flushPendingNotifications(); // chceme okamžitú zmenu --> user stlačil keyword chce vidieť zmenu hned
             printf("\n>>> FOV set to 130° (ultra-wide) <<<\n");
             return;
         }

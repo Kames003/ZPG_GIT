@@ -9,7 +9,7 @@ DrawableObject::DrawableObject(Model* m, TransformComponent* t, ShaderProgram* s
       objectColor(1.0f, 1.0f, 1.0f), hasColor(false)
 { }
 
-// ← NOVÝ konštruktor (s farbou)
+// Konštruktor (s farbou)
 DrawableObject::DrawableObject(Model* m, TransformComponent* t, ShaderProgram* sp, glm::vec3 color)
     : model(m), transformation(t), shaderProgram(sp),
       objectColor(color), hasColor(true)
@@ -20,7 +20,7 @@ void DrawableObject::draw()
     shaderProgram->use();
     shaderProgram->setUniform("modelMatrix", transformation->getMatrix());
 
-    // ← KRITICKÉ: Pošli farbu pri KAŽDOM draw()
+    // Pošli farbu pri KAŽDOM draw()
     if (hasColor) {
         shaderProgram->setUniform("objectColor", objectColor);
     }

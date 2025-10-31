@@ -22,10 +22,8 @@ private:
     float mouseSensitivity;
 
     glm::mat4 viewMatrix;
-
-    // Projekčná matica
     glm::mat4 projectionMatrix;
-    float fov;
+    float fov; // verticalos uhlos
     float aspectRatio;
     float nearPlane;
     float farPlane;
@@ -33,9 +31,6 @@ private:
     bool firstMouse;
     double lastX, lastY;
     bool isMovable;
-
-
-    // ✅ NOVÉ: Flag pre odloženú notifikáciu
     bool needsNotification;
 
     void updateCameraVectors();
@@ -58,12 +53,12 @@ public:
     glm::vec3 getFront() const { return front; }
     bool getIsMovable() const { return isMovable; }
 
-    // ✅ ZMENENÉ: Nenotifikuje hneď, len nastaví flag
+    // Nenotifikuje hneď, len nastaví flag
     void setAspectRatio(float aspect);
     void setFOV(float newFov);
     void setProjectionPlanes(float near, float far);
 
-    // ✅ NOVÁ METÓDA: Bezpečná notifikácia mimo render loop
+    // Bezpečná notifikácia mimo render loop
     void flushPendingNotifications();
 
     void processMouseInput(double xpos, double ypos);

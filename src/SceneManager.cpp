@@ -19,7 +19,7 @@ void SceneManager::switchToScene(int index)
     {
         activeSceneIndex = index;
 
-        // ✅ PRIDANÉ: Notifikuj všetky svetlá v novej scéne!
+        // Notifikuj všetky svetlá v novej scéne!
         Scene* scene = scenes[index];
         if (scene) {
             std::vector<Light*>& lights = scene->getLights();

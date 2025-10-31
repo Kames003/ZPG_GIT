@@ -1,10 +1,6 @@
 #include "Light.h"
 #include "TransformComponent.h"
 
-/**
- * Učiteľ (27:10): "Observer sa musí rozhodnúť, čo by delať"
- * → Settery len notifikujú, Observer si sám vytiahne dáta (PULL prístup)
- */
 
 void Light::setColor(const glm::vec3& col)
 {

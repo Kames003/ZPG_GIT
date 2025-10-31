@@ -73,9 +73,8 @@ public:
     void setupSceneLights();
     void run();
 
-    // BOD 3c: Framebuffer resize
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-    void updateViewport(int width, int height);  // ✅ ZMENENÉ z updateProjectionMatrix
+    void updateViewport(int width, int height);
 
     // Gettery pre controller
     Camera* getCameraStatic() { return cameraStatic; }

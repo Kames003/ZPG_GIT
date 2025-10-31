@@ -61,6 +61,8 @@ Application::Application()
         false
     );
 
+
+
     cameraDynamic = new Camera(
         glm::vec3(0.0f, 0.3f, 5.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
@@ -158,7 +160,7 @@ void Application::createShaders()
     cameraStatic->attach(shaderProgram1);
     cameraStatic->attach(shaderProgram2);
 
-    printf("✅ Static camera shaders created from files\n");
+    printf("Static camera shaders created from files\n");
 
     // ========================================
     // LIGHTING SHADERY
@@ -203,7 +205,7 @@ void Application::createShaders()
     cameraDynamic->attach(shaderProgramConstant);
     cameraDynamic->attach(shaderProgramBlinn);
 
-    printf("✅ Lighting shaders created: Phong, Lambert, Constant, Blinn\n");
+    printf("Lighting shaders created: Phong, Lambert, Constant, Blinn\n");
 
     // ========================================
     // DYNAMIC CAMERA SHADERY (Ground/Path)
@@ -229,7 +231,7 @@ void Application::createShaders()
     cameraDynamic->attach(shaderProgramGround);
     cameraDynamic->attach(shaderProgramPath);
 
-    printf("✅ Ground/Path shaders created (constant colors, no lighting)\n");
+    printf("Ground/Path shaders created (constant colors, no lighting)\n");
 
     // ========================================
     // BOD 3b: BACKFACE TEST SHADERY
@@ -252,10 +254,10 @@ void Application::createShaders()
     cameraStatic->attach(shaderProgramPhongWrong);
     cameraStatic->attach(shaderProgramPhongCorrect);
 
-    printf("✅ Backface test shaders created\n");
+    printf("Backface test shaders created\n");
 
     // ========================================
-    // ✅ KRITICKÉ: INICIALIZÁCIA ASPECT RATIO
+    // KRITICKÉ: INICIALIZÁCIA ASPECT RATIO
     // ========================================
     // Učiteľ (0:03): "Znáš, když zmieníte okno, musíte zavolať ten viewport
     //                 a musíte update-ovať v perspektívnej matici."
@@ -283,7 +285,7 @@ void Application::createShaders()
            aspectRatio, 6);  // Phong, Lambert, Constant, Blinn, Ground, Path
 
     printf("\n========================================\n");
-    printf("✅ ALL SHADERS CREATED FROM FILES!\n");
+    printf("ALL SHADERS CREATED FROM FILES!\n");
     printf("   Window: %dx%d (aspect: %.2f)\n", width, height, aspectRatio);
     printf("   Static camera observers: 8\n");
     printf("   Dynamic camera observers: 6\n");
@@ -411,20 +413,20 @@ void Application::setupSceneLights()
             shaderProgramLambert->setLights(lights);
             shaderProgramPhong->setLights(lights);
             shaderProgramBlinn->setLights(lights);
-            printf("  ✅ Sent to forest shaders (Lambert, Phong, Blinn)\n");
+            printf("Sent to forest shaders (Lambert, Phong, Blinn)\n");
         }
         else if (i == 6) {
             // Backface test (index 6)
             shaderProgramPhongWrong->setLights(lights);
             shaderProgramPhongCorrect->setLights(lights);
-            printf("  ✅ Sent to backface test shaders (PhongWrong, PhongCorrect)\n");
+            printf("Sent to backface test shaders (PhongWrong, PhongCorrect)\n");
         }
         else {
             // Ostatné scény
             shaderProgramPhong->setLights(lights);
             shaderProgramLambert->setLights(lights);
             shaderProgramBlinn->setLights(lights);
-            printf("  ✅ Sent to lighting shaders\n");
+            printf("Sent to lighting shaders\n");
         }
 
         // Notifikuj všetky svetlá
@@ -433,19 +435,17 @@ void Application::setupSceneLights()
                 light->notifyAll();
             }
         }
-        printf("  ✅ Initial notifications sent\n");
+        printf("Initial notifications sent\n");
     }
-
-    // Prepni na prvú scénu
     sceneManager->switchToScene(0);
 
     printf("\n========================================\n");
-    printf("✅ ALL SCENE LIGHTS CONFIGURED\n");
+    printf("ALL SCENE LIGHTS CONFIGURED\n");
     printf("========================================\n\n");
 }
 
 // ========================================
-// BOD 3c: FRAMEBUFFER RESIZE
+// FRAMEBUFFER RESIZE
 // ========================================
 void Application::framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -461,14 +461,17 @@ void Application::updateViewport(int width, int height)
 
     float aspectRatio = (float)width / (float)height;
 
-    // ✅ OPTIMALIZOVANÉ: Aktualizuj len aktívnu kameru
+
+    // aktualizuj aktivnu kameru
     Camera* activeCamera = (sceneManager->getActiveSceneIndex() == 5)
                             ? cameraDynamic
                             : cameraStatic;
 
     activeCamera->setAspectRatio(aspectRatio);
 
-    printf("✅ Viewport updated: %dx%d (aspect: %.2f) - notification pending\n",
+    // TODO zbav sa pak týchto technicalos debugos
+
+    printf("Viewport updated: %dx%d (aspect: %.2f) - notification pending\n",
            width, height, aspectRatio);
 }
 
@@ -480,7 +483,7 @@ void Application::run() {
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
 
-        // ✅ Notifikuj len aktívnu kameru
+        // Notifikuj len aktívnu kameru
         Camera* activeCamera = (sceneManager->getActiveSceneIndex() == 5)
                                 ? cameraDynamic
                                 : cameraStatic;

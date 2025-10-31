@@ -15,7 +15,7 @@ Camera::Camera(glm::vec3 pos, glm::vec3 up, float yaw, float pitch, bool movable
       aspectRatio(4.0f / 3.0f),
       nearPlane(0.1f),
       farPlane(100.0f),
-      needsNotification(false)  // ✅ Inicializácia flagu
+      needsNotification(false)
 {
     front = glm::vec3(0.0f, 0.0f, -1.0f);
     updateCameraVectors();
@@ -91,14 +91,14 @@ void Camera::updateProjectionMatrix()
 {
     projectionMatrix = glm::perspective(
         glm::radians(fov),
-        aspectRatio,
+        aspectRatio, // pomer stran ( width / with )
         nearPlane,
         farPlane
     );
 }
 
 // ========================================
-// ✅ SET ASPECT RATIO (s odloženou notifikáciou)
+// SET ASPECT RATIO (s odloženou notifikáciou)
 // ========================================
 void Camera::setAspectRatio(float aspect)
 {
@@ -110,19 +110,19 @@ void Camera::setAspectRatio(float aspect)
 }
 
 // ========================================
-// ✅ SET FOV (s odloženou notifikáciou)
+// SET FOV (s odloženou notifikáciou)
 // ========================================
 void Camera::setFOV(float newFov)
 {
     fov = newFov;
-    updateProjectionMatrix();
-    needsNotification = true;  // ← Odložená notifikácia!
+    updateProjectionMatrix();   // prepočíta projekčnú maticu
+    needsNotification = true;
 
     printf("Camera: FOV changed to %.1f° (notification pending)\n", fov);
 }
 
 // ========================================
-// ✅ SET PROJECTION PLANES
+// SET PROJECTION PLANES
 // ========================================
 void Camera::setProjectionPlanes(float near, float far)
 {
@@ -133,7 +133,7 @@ void Camera::setProjectionPlanes(float near, float far)
 }
 
 // ========================================
-// ✅ FLUSH PENDING NOTIFICATIONS
+// FLUSH PENDING NOTIFICATIONS
 // ========================================
 void Camera::flushPendingNotifications()
 {

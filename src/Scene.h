@@ -7,14 +7,6 @@
 class DrawableObject;
 class Light;
 
-/**
- * Scéna = kolekcia objektov + svetiel
- *
- * KOMPOZÍCIA: Každá scéna má svoje svetlá (ako odporúčal učiteľ)
- * - Svetlá sa NEZDIEĽAJÚ medzi scénami
- * - Každá scéna si spravuje svoje osvetlenie
- * - Automaticky priraďuje indexy svetlám
- */
 class Scene
 {
 private:
@@ -23,8 +15,6 @@ private:
 
 public:
     Scene();
-
-
 
     // ========================================
     // OBJEKTY

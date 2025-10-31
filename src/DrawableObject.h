@@ -20,10 +20,10 @@ private:
     bool hasColor;
 
 public:
-    // Pôvodný konštruktor (bez farby)
+    // konštruktor (bez farby)
     DrawableObject(Model* m, TransformComponent* t, ShaderProgram* sp);
 
-    // ← NOVÝ konštruktor (s farbou)
+    // Konštruktor (s farbou)
     DrawableObject(Model* m, TransformComponent* t, ShaderProgram* sp, glm::vec3 color);
 
     void draw();

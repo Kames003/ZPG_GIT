@@ -89,7 +89,7 @@ void ShaderProgram::setLights(const std::vector<Light*>& lights)
 {
     use();
 
-    // Počet svetiel (ZMENENÉ z 4 na 8)
+    // počet svetile
     int lightCount = static_cast<int>(lights.size());
     if (lightCount > 8) {  // ← MAX_LIGHTS = 8
         printf("WARNING: Too many lights (%d), max is 8\n", lightCount);
@@ -104,25 +104,13 @@ void ShaderProgram::setLights(const std::vector<Light*>& lights)
     }
 }
 
-/**
- * Pošle jedno svetlo na konkrétnu pozíciu v poli
- *
- * KRITICKÁ ZMENA: Teraz posielame ambient, diffuse, specular namiesto color!
- */
 
-/**
- * Pošle jedno svetlo na konkrétnu pozíciu v poli
- *
- * KRITICKÁ ZMENA: Ambient sa posiela LEN pre index 0!
- * Učiteľ (27:00): "Observer sa musí rozhodnúť, čo by delať"
- */
 void ShaderProgram::setLight(int index, Light* light)
 {
     if (!light) return;
 
     use();
 
-    // Vytvor názvy uniformov: "lights[0].position", "lights[0].ambient", ...
     std::string baseName = "lights[" + std::to_string(index) + "].";
 
     // ========================================
@@ -163,12 +151,6 @@ void ShaderProgram::setLight(int index, Light* light)
     setUniform(intensityName.c_str(), light->getIntensity());
 }
 
-/**
- * Update jedno svetlo (keď sa zmení cez notifikáciu)
- *
- * Učiteľ (7:33): "Keď sa mi to svetlo zmení,
- * tak ja ho musím aktualizovať v pozícii"
- */
 void ShaderProgram::updateLightUniforms(Light* light)
 {
     // Použije shaderIndex, ktorý má svetlo priradený

@@ -37,10 +37,10 @@ uniform int numberOfLights;
 // ========================================
 void main(void)
 {
-    // ✅ GLOBÁLNE AMBIENT - iba raz, mimo cyklu
+    // GLOBÁLNE AMBIENT - iba raz, mimo cyklu
     vec3 globalAmbient = objectColor * 0.15;
 
-    // ✅ AMBIENT z prvého svetla - LEN RAZ!
+    //  AMBIENT z prvého svetla - LEN RAZ!
     vec3 ambient = vec3(0.0);
     if (numberOfLights > 0) {
         ambient = lights[0].ambient * objectColor * 0.1;
@@ -50,7 +50,7 @@ void main(void)
     vec3 totalDiffuse = vec3(0.0);
     vec3 totalSpecular = vec3(0.0);
 
-    // ✅ Cyklus cez všetky svetlá - LEN diffuse + specular!
+    // Cyklus cez všetky svetlá - LEN diffuse + specular!
     for (int i = 0; i < numberOfLights; i++) {
         Light light = lights[i];
 
@@ -74,7 +74,7 @@ void main(void)
         totalSpecular += attenuation * specular;
     }
 
-    // ✅ FINAL COLOR
+    // FINAL COLOR
     vec3 result = globalAmbient + ambient + totalDiffuse + totalSpecular;
     out_Color = vec4(result, 1.0);
 }

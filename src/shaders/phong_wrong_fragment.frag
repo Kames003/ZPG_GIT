@@ -21,7 +21,6 @@ uniform int numberOfLights;
 
 void main(void)
 {
-    // RovnakÃ½ ambient ako correct
     vec3 globalAmbient = objectColor * 0.15;
 
     vec3 ambient = vec3(0.0);
@@ -38,8 +37,6 @@ void main(void)
         vec3 norm = normalize(worldNormal);
         vec3 lightDir = normalize(light.position.xyz - worldPosition.xyz);
 
-        // âŒ CHYBA: NepouÅ¾ivame if() kontrolu!
-        // PoÄÃ­tame VÅ½DY, aj keÄ je svetlo vzadu
         float dotNL = dot(norm, lightDir);
 
         // Pre stred: dotNL = -1.0 â†’ diff = 0.0 (OK)
@@ -49,9 +46,6 @@ void main(void)
         vec3 viewDir = normalize(viewPosition - worldPosition.xyz);
         vec3 reflectDir = reflect(-lightDir, norm);
 
-        // âŒ ALE! Specular sa poÄÃ­ta aj pre odvrÃ¡tenÃ© strany!
-        // KeÄ je dotNL < 0, reflect() stÃ¡le dÃ¡va nejakÃ½ vÃ½sledok
-        // â†’ Vznikne "false highlight" v strede
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 12.0);
         vec3 specular = spec * light.specular * light.intensity * 0.8;  // VyÅ¡Å¡ie!
 

@@ -8,7 +8,7 @@ out vec4 out_Color;
 #define MAX_LIGHTS 8
 
 struct Light {
-    vec4 position;
+    vec4 position; // sem pojde pozícia
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -22,7 +22,6 @@ uniform int numberOfLights;
 
 void main(void)
 {
-    // ✅ VEĽMI NÍZKY AMBIENT - pre sivý, tmavý vzhľad ako na referenčnom obrázku
     vec3 globalAmbient = objectColor * 0.08;  // Minimálny ambient
 
     vec3 ambient = vec3(0.0);
@@ -48,7 +47,6 @@ void main(void)
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 40.0);  // Striedna ostrosť
         vec3 specular = spec * light.specular * light.intensity;
 
-        // ATTENUATION - kritické pre správny útlum!
         float distance = length(light.position.xyz - worldPosition.xyz);
         float attenuation = 1.0 / (1.0 + 0.14 * distance + 0.07 * distance * distance);
 
@@ -60,3 +58,4 @@ void main(void)
     vec3 result = globalAmbient + ambient + totalDiffuse + totalSpecular;
     out_Color = vec4(result, 1.0);
 }
+

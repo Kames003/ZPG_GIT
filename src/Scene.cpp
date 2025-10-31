@@ -38,30 +38,18 @@ std::vector<DrawableObject*>& Scene::getObjects()
     return objects;
 }
 
-// ========================================
-// SVETLÁ
-// ========================================
 
-/**
- * Pridá svetlo do scény a automaticky mu pridelí index
- *
- * Učiteľ (7:26): "Ja potrebujem si pamatovať,
- * které to svetlo v tom poli mám, na ktoré pozícii"
- */
 void Scene::addLight(Light* light)
 {
     if (!light) return;
 
-    // Pridelíme svetlu index podľa pozície v poli
-    int index = static_cast<int>(lights.size());
+
+    int index = static_cast<int>(lights.size()); // pridelíme svetlu index podla pozicie v poli
     light->setShaderIndex(index);
 
     lights.push_back(light);
 }
 
-/**
- * Odstráni svetlo a prepočíta indexy zvyšných svetiel
- */
 void Scene::removeLight(Light* light)
 {
     auto it = std::find(lights.begin(), lights.end(), light);
@@ -69,7 +57,6 @@ void Scene::removeLight(Light* light)
     {
         lights.erase(it);
 
-        // Prepočítaj indexy pre zvyšné svetlá
         for (size_t i = 0; i < lights.size(); i++)
         {
             lights[i]->setShaderIndex(static_cast<int>(i));

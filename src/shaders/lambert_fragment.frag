@@ -18,9 +18,9 @@ out vec4 out_Color;
 
 struct Light {
     vec4 position;
-    vec3 ambient;    // Používa sa LEN pre prvé svetlo
+    vec3 ambient;
     vec3 diffuse;
-    vec3 specular;   // Nepoužíva sa v Lambertovi
+    vec3 specular;  // TODO nutne ju tu nepotrebuješ
     float intensity;
 };
 
@@ -36,10 +36,10 @@ uniform int numberOfLights;
 // ========================================
 void main(void)
 {
-    // ✅ GLOBÁLNE AMBIENT - iba raz, mimo cyklu
+    //  GLOBÁLNE AMBIENT - iba raz, mimo cyklu
     vec3 globalAmbient = objectColor * 0.15;
 
-    // ✅ AMBIENT z prvého svetla - LEN RAZ!
+    //  AMBIENT z prvého svetla - LEN RAZ!
     vec3 ambient = vec3(0.0);
     if (numberOfLights > 0) {
         ambient = lights[0].ambient * objectColor * 0.1;
@@ -48,7 +48,7 @@ void main(void)
     // Akumulácia diffuse
     vec3 totalDiffuse = vec3(0.0);
 
-    // ✅ Cyklus cez všetky svetlá - LEN diffuse!
+    //  Cyklus cez všetky svetlá - LEN diffuse!
     for (int i = 0; i < numberOfLights; i++) {
         Light light = lights[i];
 
@@ -65,7 +65,7 @@ void main(void)
         totalDiffuse += attenuation * diffuse;
     }
 
-    // ✅ FINAL COLOR
+    //  FINAL COLOR
     vec3 result = globalAmbient + ambient + totalDiffuse;
     out_Color = vec4(result, 1.0);
 }

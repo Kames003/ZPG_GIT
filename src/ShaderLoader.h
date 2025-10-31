@@ -6,6 +6,9 @@
 
 // strategy pattern prosto a len volame načitaj a on nemusí vedieť ako
 // implementácia strategy patternu
+
+// TODO arbeit daj to do samostatných class
+
 class IShaderLoader
 {
 public:

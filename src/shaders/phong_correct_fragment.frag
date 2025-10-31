@@ -21,7 +21,7 @@ uniform int numberOfLights;
 
 void main(void)
 {
-    // ✅ Vyšší ambient pre viditeľnosť
+    // Vyšší ambient pre viditeľnosť
     vec3 globalAmbient = objectColor * 0.15;
 
     vec3 ambient = vec3(0.0);
@@ -38,7 +38,7 @@ void main(void)
         vec3 norm = normalize(worldNormal);
         vec3 lightDir = normalize(light.position.xyz - worldPosition.xyz);
 
-        // ✅ SPRÁVNE: Kontrola orientácie
+
         float dotNL = dot(norm, lightDir);
 
         if (dotNL > 0.0) {
@@ -53,7 +53,7 @@ void main(void)
             totalDiffuse += diffuse;
             totalSpecular += specular;
         }
-        // ✅ Ak dotNL <= 0 → ŽIADNE osvetlenie
+        // Ak dotNL <= 0 → ŽIADNE osvetlenie
     }
 
     vec3 result = globalAmbient + ambient + totalDiffuse + totalSpecular;
