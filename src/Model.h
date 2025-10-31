@@ -15,5 +15,4 @@ public:
     Model(float* vertices, int count);
     void draw();
 };
-
 #endif
