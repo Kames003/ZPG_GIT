@@ -3,7 +3,7 @@
 #define MODEL_H
 
 #include <GL/glew.h>
-
+// backup pred velkym commitom
 class Model
 {
 private:
